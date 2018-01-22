@@ -52,6 +52,7 @@ class MessageHandler(object):
                 break
             embed.add_field(name=commit.commit.message, value=commit.commit.author.name, inline=False)
             k += 1
+        return embed
 
     @asyncio.coroutine
     async def on_message(self, message):
@@ -73,4 +74,4 @@ class MessageHandler(object):
             os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
         elif message.content.startswith("!cleanup"):
             await self.client.send_message(message.channel, '[*] cleaning!')
-            await self.client.purge_from()
+            await self.client.purge_from(message.channel)

@@ -1,8 +1,12 @@
+import asyncio
 import discord
 import json
+import threading
+import time
 
+from datetime import datetime
+from event_bus import EventBus
 from github import Github
-
 from message_handler import MessageHandler
 from secret import SecRet
 
@@ -22,15 +26,40 @@ welcome_channel = discord.Channel(id='404795628019777557',
 g = Github(configs['github_username'], configs['github_password'])
 repo = g.get_repo('iGio90/secRet_dBot')
 
-
 # message handler
 message_handler = MessageHandler(client, secret_server, secret_channel, repo)
-
 
 # secret thread for additional periodic stuffs
 secret = SecRet()
 secret.setName('secRet')
 secret.start()
+
+# event bus
+bus = EventBus()
+
+
+def ding():
+    now = datetime.now()
+    s = ''
+    for i in range(0, now.minute):
+        s += 'DING '
+    bus.emit('secret_send', message=s)
+
+
+@asyncio.coroutine
+@bus.on('secret_send')
+async def secret_send(message=None):
+    """
+    can be used from other threads :P
+
+    :param: message
+    a string or embed object
+    """
+    if message:
+        if isinstance(message, str):
+            await client.send_message(secret_channel, message)
+        elif isinstance(message, discord.Embed):
+            await client.send_message(secret_channel, embed=message)
 
 
 @client.event
@@ -38,6 +67,14 @@ async def on_ready():
     print('----------------')
     print('secRet bot ready')
     print('----------------')
+
+    # DING
+    now = datetime.now()
+    c_min = now.minute
+    c_sec = now.second
+    l_min = 59 - c_min
+    l_sec = 59 - c_sec + (60 * c_min)
+    threading.Timer(l_sec, ding).start()
 
 
 @client.event
