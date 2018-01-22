@@ -1,11 +1,9 @@
 import asyncio
 import discord
-import os
-import sys
 import utils
 
 
-from commands import commands_git
+from commands import commands_git, commands_statsroyale
 
 # commands map for help
 commands_map = {
@@ -18,6 +16,11 @@ commands_map = {
         "author": "iGio90",
         "description": "initial help",
         "function": "help"
+    },
+    "statsroyale": {
+        "author": "iGio90",
+        "description": "statsroyale commands",
+        "function": "statsroyale"
     },
 }
 
@@ -117,7 +120,7 @@ class MessageHandler(object):
         print help
         """
         embed = discord.Embed(title='', type='rich',
-                              description="\ngoal is to build me as an automated **bot** with whatever feature "
+                              description="goal is to build me as an automated **bot** with whatever feature "
                                           "people would like to code. I'll soon run on a virtual"
                                           " machine with **root** privileges,"
                                           "but meanwhile, I can already do something:\n\n",
@@ -136,11 +139,17 @@ class MessageHandler(object):
         self.bus.emit('secret_restart')
 
     async def rules(self, message):
+        """
+        print rules
+        """
         embed = utils.build_default_embed('', '', discord.Color.dark_green())
         s = open('RULES.md', 'r')
         msg = s.read()
         embed.add_field(name="Rules of the house", value=msg, inline=False)
         await self.client.send_message(message.channel, embed=embed)
+
+    async def statsroyale(self, message):
+        await commands_statsroyale.handle(self.client, message)
 
     @asyncio.coroutine
     async def on_message(self, message):
@@ -162,6 +171,9 @@ class MessageHandler(object):
         # strip prefix
         content = content[1:]
 
+        # get base command
+        base_command = content.split(" ")
+
         # parse base commands (not mapped)
         if content == 'commands':
             await self.commands(message)
@@ -170,13 +182,13 @@ class MessageHandler(object):
         elif content == 'devme':
             await self.devme(message)
         # parse user commands
-        elif content in commands_map:
-            command = commands_map[content]
+        elif base_command[0] in commands_map:
+            command = commands_map[base_command[0]]
             command_function = getattr(self, command["function"])
             await command_function(message)
         # check and parse admin commands
         elif utils.is_admin(message.author):
-            if content in admin_commands_map:
-                command = admin_commands_map[content]
+            if base_command[0] in admin_commands_map:
+                command = admin_commands_map[base_command[0]]
                 command_function = getattr(self, command["function"])
                 await command_function(message)

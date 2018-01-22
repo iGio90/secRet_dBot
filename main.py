@@ -1,13 +1,10 @@
 import asyncio
 import discord
 import json
-import threading
-
-from datetime import datetime
-
 import os
-
 import sys
+
+from commands import commands_analytics
 from event_bus import EventBus
 from github import Github
 from message_handler import MessageHandler
@@ -58,11 +55,11 @@ def secret_restart():
     """
     restart the bot with updated code
     """
-    main_loop.create_task(_as_secret_send('**[*]** restarting secRet'))
     main_loop.create_task(_restart())
 
 
 async def _restart():
+    await client.send_message(secret_channel, '**[*]** restarting secRet')
     os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
 
 
@@ -83,12 +80,12 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member):
-    await client.send_message(welcome_channel, '**[*]** ' + member.mention() + ' has joined!')
+    await client.send_message(welcome_channel, '**[*]** ' + member.mention + ' has joined!')
 
 
 @client.event
 async def on_member_remove(member):
-    await client.send_message(welcome_channel, '**[*]** ' + member.mention() + ' has left!')
+    await client.send_message(welcome_channel, '**[*]** ' + member.mention + ' has left!')
 
 
 @client.event
