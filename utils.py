@@ -1,6 +1,8 @@
+import random
 import subprocess
 
 import discord
+import math
 
 
 def build_default_embed(title, description, color, icon=True):
@@ -22,6 +24,16 @@ def build_commands_embed(map, title, color):
             description = cmd['description']
         embed.add_field(name="!" + cmd_name, value=description, inline=False)
     return embed
+
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
 
 
 def is_admin(member):
@@ -56,6 +68,10 @@ def is_owner(user_id):
     return user_id in [
         '168018245943558144'
     ]
+
+
+def random_color():
+    return int('0x{:06x}'.format(random.randint(0, 256 ** 3)), 16)
 
 
 def run_shell_command(command):

@@ -2,30 +2,9 @@ import asyncio
 import discord
 import utils
 
-
-from commands import commands_git, commands_statsroyale
-
-# commands map for help
-commands_map = {
-    "commits": {
-        "author": "iGio90",
-        "description": "last 10 commits on secRet repo",
-        "function": "commits"
-    },
-    "help": {
-        "author": "iGio90",
-        "description": "initial help",
-        "function": "help"
-    },
-    "statsroyale": {
-        "author": "iGio90",
-        "description": "statsroyale commands",
-        "function": "statsroyale"
-    },
-}
-
-dev_commands_map = {
-}
+from commands import command_status, commands_git, commands_statsroyale
+from datetime import datetime, time, timedelta
+from mongo_models import command_log
 
 admin_commands_map = {
     "cleanup": {
@@ -42,6 +21,37 @@ admin_commands_map = {
         "author": "iGio90",
         "description": "restart secRet. flush scripts",
         "function": "restart"
+    },
+    "status": {
+        "author": "iGio90",
+        "description": "bot services status",
+        "function": "secret_status"
+    }
+}
+
+dev_commands_map = {
+    "history": {
+        "author": "iGio90",
+        "description": "commands history",
+        "function": "commands_history"
+    }
+}
+
+commands_map = {
+    "commits": {
+        "author": "iGio90",
+        "description": "last 10 commits on secRet repo",
+        "function": "commits"
+    },
+    "help": {
+        "author": "iGio90",
+        "description": "initial help",
+        "function": "help"
+    },
+    "statsroyale": {
+        "author": "iGio90",
+        "description": "statsroyale commands",
+        "function": "statsroyale"
     }
 }
 
@@ -58,8 +68,10 @@ class MessageHandler(object):
 
     :param: bus
     event bus
-    :param: client
+    :param: discord_client
     the discord client
+    :param: mongo_db
+    instance of mongo db
     :param: secret_server
     instance of discord server object holding server id
     :param: secret_channel
@@ -67,9 +79,12 @@ class MessageHandler(object):
     :param: git_repo
     the git repository
     """
-    def __init__(self, bus, client, secret_server, secret_channel, git_repo):
+
+    def __init__(self, bus, discord_client, mongo_db, secret_server, secret_channel, git_repo):
+        self.start_time = datetime.now().timestamp()
         self.bus = bus
-        self.client = client
+        self.discord_client = discord_client
+        self.mongo_db = mongo_db
         self.secret_server = secret_server
         self.secret_channel = secret_channel
         self.git_repo = git_repo
@@ -78,31 +93,44 @@ class MessageHandler(object):
         """
         clean the whole channel. delete all messages
         """
-        c = len(await self.client.purge_from(message.channel, limit=100000))
-        await self.client.send_message(message.channel, '**[*]** ' + str(c) + ' message deleted!')
+        c = len(await self.discord_client.purge_from(message.channel, limit=100000))
+        await self.discord_client.send_message(message.channel, '**[*]** ' + str(c) + ' message deleted!')
 
     async def commands(self, message):
         """
         list the commands from both the maps
         """
-        # user commands
-        embed = utils.build_commands_embed(commands_map, 'user commands', discord.Color.red())
-        await self.client.send_message(message.channel, embed=embed)
-
-        # dev commands
-        embed = utils.build_commands_embed(dev_commands_map, 'dev commands', discord.Color.red())
-        await self.client.send_message(message.channel, embed=embed)
-
         # admin commands
         embed = utils.build_commands_embed(admin_commands_map, 'admin commands', discord.Color.red())
-        await self.client.send_message(message.channel, embed=embed)
+        await self.discord_client.send_message(message.channel, embed=embed)
+
+        # dev commands
+        embed = utils.build_commands_embed(dev_commands_map, 'dev commands', discord.Color.blue())
+        await self.discord_client.send_message(message.channel, embed=embed)
+
+        # user commands
+        embed = utils.build_commands_embed(commands_map, 'user commands', discord.Color.light_grey())
+        await self.discord_client.send_message(message.channel, embed=embed)
+
+    async def commands_history(self, message):
+        cmd_list = message.content.split(" ")
+        if len(cmd_list) == 1:
+            embed = utils.build_default_embed('commands history', '-', discord.Color.teal(), icon=False)
+            for log in command_log.CommandLog.objects[:10]:
+                embed.add_field(name=log.user_name, value=log.command, inline=False)
+            await self.discord_client.send_message(message.channel, embed=embed)
+        else:
+            if cmd_list[1] == 'clear':
+                c = command_log.CommandLog.objects.count()
+                command_log.CommandLog.drop_collection()
+                await self.discord_client.send_message(message.channel, "**[*]** removed " + str(c) + " entries")
 
     async def commits(self, message):
         """
         list last 10 commits in the repo
         """
         commits_embed = commands_git.build_commit_list_embed(self.git_repo)
-        await self.client.send_message(message.channel, embed=commits_embed)
+        await self.discord_client.send_message(message.channel, embed=commits_embed)
 
     async def devme(self, message):
         s = open('DOCUMENTATION.md', 'r')
@@ -118,13 +146,13 @@ class MessageHandler(object):
             l += 1000
             embed = utils.build_default_embed('', '', discord.Color.dark_green())
             embed.add_field(name="contribute and improve secRet dBot", value=m, inline=False)
-            await self.client.send_message(message.channel, embed=embed)
+            await self.discord_client.send_message(message.channel, embed=embed)
 
     async def exec(self, message):
         cmd = message.content.replace("!exec ", "")
         r = utils.run_shell_command(cmd)
         for line in r:
-            await self.client.send_message(message.channel, line)
+            await self.discord_client.send_message(message.channel, line)
 
     async def help(self, message):
         """
@@ -141,7 +169,7 @@ class MessageHandler(object):
         embed.add_field(name="!commands", value="something to interact with me", inline=False)
         embed.add_field(name="!devme", value="info and help about coding features", inline=False)
         embed.add_field(name="!rules", value="a world without rules... mhhh chaos", inline=False)
-        await self.client.send_message(message.channel, embed=embed)
+        await self.discord_client.send_message(message.channel, embed=embed)
 
     async def restart(self, message):
         """
@@ -157,12 +185,15 @@ class MessageHandler(object):
         s = open('RULES.md', 'r')
         msg = s.read()
         embed.add_field(name="Rules of the house", value=msg, inline=False)
-        await self.client.send_message(message.channel, embed=embed)
+        await self.discord_client.send_message(message.channel, embed=embed)
+
+    async def secret_status(self, message):
+        await command_status.secret_status(message, self.discord_client, self.mongo_db,
+                                    self.start_time, self.secret_channel)
 
     async def statsroyale(self, message):
-        await commands_statsroyale.handle(self.client, message)
+        await commands_statsroyale.handle(self.discord_client, message)
 
-    @asyncio.coroutine
     async def on_message(self, message):
         """
         don't touch this! keep it abstract
@@ -206,6 +237,12 @@ class MessageHandler(object):
             cmd_funct = self._get_command_function(admin_commands_map, base_command)
 
         if cmd_funct is not None:
+            # log command issued on mongo
+            cmd_log = command_log.CommandLog(user_name=message.author.name,
+                                             user_id=message.author.id,
+                                             command=content)
+            cmd_log.save()
+
             await cmd_funct(message)
 
     def _get_command_function(self, map, base_command):

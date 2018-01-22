@@ -33,15 +33,11 @@ class SecRet(Thread):
             time.sleep(60 * 60)
 
     def secret_hourly_task(self):
-        self.ding()
-        self.auto_update()
+        # ping main thread
+        self.bus.emit('secret_ping')
 
-    def ding(self):
-        now = datetime.now()
-        s = ''
-        for i in range(0, now.hour):
-            s += 'DING '
-        self.bus.emit('secret_send', message=s)
+        # check for update through git
+        self.auto_update()
 
     def auto_update(self):
         commits = self.git_repo.get_commits()
