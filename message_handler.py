@@ -22,6 +22,11 @@ commands_map = {
         "description": "statsroyale commands",
         "function": "statsroyale"
     },
+    "reversetext": {
+        "author": "Jabonz",
+        "description": "text reverser, wow so complicated"
+        "function": "reversetext"
+    }
 }
 
 dev_commands_map = {
@@ -161,6 +166,9 @@ class MessageHandler(object):
 
     async def statsroyale(self, message):
         await commands_statsroyale.handle(self.client, message)
+
+    async def reversetext(self, message):
+        await self.client.send_message(message.channel, message.content.replace("!reversetext ", "")[::-1])
 
     @asyncio.coroutine
     async def on_message(self, message):
