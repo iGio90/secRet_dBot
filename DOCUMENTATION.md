@@ -1,6 +1,6 @@
 ## Documentation
 
-Adding command and features it's very easy. The file you need to check to start with is message_handler.
+Adding command and features is very easy. The file you need to check to start with is message_handler.
 The commands map are pretty easy to understand and will let you add your commands handlers.
 The main function invoked by yours handler MUST be coded inside the message handler.
 If your functions is very short and take a couple of lines, it's good to code it straight on message_handler, otherwise I suggest to create and import your own files and follow your flows there.
@@ -12,7 +12,8 @@ A little example:
         "function": "commits"
     }
 ```
-Note: function must be ``async``. message object hold everything (sender, reactions etc etc)
+Note: function must be ``async``. message object hold everything
+(sender, reactions, server - find more in the discord api link below, it's very easy to use)
 ```
 async def commits(self, message):
     """
@@ -22,7 +23,7 @@ async def commits(self, message):
     await self.client.send_message(message.channel, embed=commits_embed)
 ```
 
-Refer also to the Discord bot documentation for interacting with all the objects it provides:
+Discord bot documentation:
 http://discordpy.readthedocs.io/en/latest/api.html#
 
 ## Additional
@@ -50,6 +51,5 @@ def ding(self):
     self.bus.emit('secret_send', message=s)
 ```
 
-## Api
-
-TODO
+## Auto update
+The bot auto-update itself every hour from the github repo.

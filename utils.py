@@ -1,7 +1,28 @@
 import discord
 
 
-def is_admin(user_id):
+def is_admin(member):
+    for role in member.roles:
+        if role.name == 'Admins':
+            return True
+    return False
+
+
+def is_dev(member):
+    for role in member.roles:
+        if role.name == 'Devs':
+            return True
+    return False
+
+
+def is_bot(member):
+    for role in member.roles:
+        if role.name == 'BOT':
+            return True
+    return False
+
+
+def is_owner(user_id):
     """
     :param user_id
     the id to check

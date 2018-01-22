@@ -23,3 +23,13 @@ def build_commit_list_embed(git_repo):
                         inline=False)
         k += 1
     return embed
+
+
+def get_last_commit(git_repo):
+    """
+    :param git_repo:
+    the repo object
+    :return:
+    the last commit
+    """
+    return git_repo.get_commits()[0]

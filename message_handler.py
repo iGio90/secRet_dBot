@@ -1,20 +1,14 @@
 import asyncio
+import discord
 import os
 import sys
-
-import discord
-
 import utils
+
 
 from commands import commands_git
 
 # commands map for help
 commands_map = {
-    "commands": {
-        "author": "iGio90",
-        "description": "commands list",
-        "function": "commands"
-    },
     "commits": {
         "author": "iGio90",
         "description": "last 10 commits on secRet repo",
@@ -45,17 +39,20 @@ class MessageHandler(object):
     """
     handle messages from discord #secRet channel
 
-    :param client
+    :param: bus
+    event bus
+    :param: client
     the discord client
-    :param secret_server
+    :param: secret_server
     instance of discord server object holding server id
-    :param secret_channel
+    :param: secret_channel
     instance of discord channel object holdin #secRet id
-    :param git_repo
+    :param: git_repo
     the git repository
     """
 
-    def __init__(self, client, secret_server, secret_channel, git_repo):
+    def __init__(self, bus, client, secret_server, secret_channel, git_repo):
+        self.bus = bus
         self.client = client
         self.secret_server = secret_server
         self.secret_channel = secret_channel
@@ -65,8 +62,8 @@ class MessageHandler(object):
         """
         clean the whole channel. delete all messages
         """
-        c = len(await self.client.purge_from(message.channel))
-        await self.client.send_message(message.channel, '[*] ' + str(c) + ' message deleted!')
+        c = len(await self.client.purge_from(message.channel, limit=100000))
+        await self.client.send_message(message.channel, '**[*]** ' + str(c) + ' message deleted!')
 
     async def commands(self, message):
         """
@@ -99,6 +96,22 @@ class MessageHandler(object):
         commits_embed = commands_git.build_commit_list_embed(self.git_repo)
         await self.client.send_message(message.channel, embed=commits_embed)
 
+    async def devme(self, message):
+        s = open('DOCUMENTATION.md', 'r')
+        msg = s.read()
+        l = 0
+        msg_len = len(msg)
+        # message is too long :S
+        while l <= msg_len:
+            try:
+                m = msg[l:l + 1000]
+            except Exception as e:
+                m = msg_len[l:msg_len - 1]
+            l += 1000
+            embed = utils.build_default_embed('', '', discord.Color.dark_green())
+            embed.add_field(name="contribute and improve secRet dBot", value=m, inline=False)
+            await self.client.send_message(message.channel, embed=embed)
+
     async def help(self, message):
         """
         print help
@@ -120,8 +133,14 @@ class MessageHandler(object):
         """
         restart the scripts (update changes)
         """
-        await self.client.send_message(message.channel, "[*] restarting secRet")
-        os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
+        self.bus.emit('secret_restart')
+
+    async def rules(self, message):
+        embed = utils.build_default_embed('', '', discord.Color.dark_green())
+        s = open('RULES.md', 'r')
+        msg = s.read()
+        embed.add_field(name="Rules of the house", value=msg, inline=False)
+        await self.client.send_message(message.channel, embed=embed)
 
     @asyncio.coroutine
     async def on_message(self, message):
@@ -143,14 +162,20 @@ class MessageHandler(object):
         # strip prefix
         content = content[1:]
 
+        # parse base commands (not mapped)
+        if content == 'commands':
+            await self.commands(message)
+        elif content == 'rules':
+            await self.rules(message)
+        elif content == 'devme':
+            await self.devme(message)
         # parse user commands
-        if content in commands_map:
+        elif content in commands_map:
             command = commands_map[content]
             command_function = getattr(self, command["function"])
             await command_function(message)
-
         # check and parse admin commands
-        if utils.is_admin(message.author.id):
+        elif utils.is_admin(message.author):
             if content in admin_commands_map:
                 command = admin_commands_map[content]
                 command_function = getattr(self, command["function"])
