@@ -73,7 +73,8 @@ class MessageHandler(object):
         list the commands from both the maps
         """
         # user commands
-        embed = utils.build_default_embed('user commands', '', discord.Color.gold())
+        embed = utils.build_default_embed('', '', discord.Color.gold())
+        embed.add_field(name="user commands", value='-', inline=False)
         for cmd_name, cmd in commands_map.items():
             description = ''
             if 'description' in cmd:
@@ -82,7 +83,8 @@ class MessageHandler(object):
         await self.client.send_message(message.channel, embed=embed)
 
         # admin commands
-        embed = utils.build_default_embed('admin commands', '', discord.Color.teal())
+        embed = utils.build_default_embed('', '', discord.Color.teal())
+        embed.add_field(name="admin commands", value='-', inline=False)
         for cmd_name, cmd in admin_commands_map.items():
             description = ''
             if 'description' in cmd:

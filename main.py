@@ -2,7 +2,6 @@ import asyncio
 import discord
 import json
 import threading
-import time
 
 from datetime import datetime
 from event_bus import EventBus
@@ -29,34 +28,28 @@ repo = g.get_repo('iGio90/secRet_dBot')
 # message handler
 message_handler = MessageHandler(client, secret_server, secret_channel, repo)
 
+# event bus and loop
+main_loop = asyncio.get_event_loop()
+bus = EventBus()
+
 # secret thread for additional periodic stuffs
-secret = SecRet()
+secret = SecRet(bus)
 secret.setName('secRet')
 secret.start()
 
-# event bus
-bus = EventBus()
 
-
-def ding():
-    now = datetime.now()
-    s = ''
-    for i in range(0, now.minute):
-        s += 'DING '
-    bus.emit('secret_send', message=s)
-
-
-@asyncio.coroutine
 @bus.on('secret_send')
-async def secret_send(message=None):
-    print("secret_send called")
-    print("message: " + message)
+def secret_send(message=None):
     """
     can be used from other threads :P
 
     :param: message
     a string or embed object
     """
+    main_loop.create_task(_as_secret_send(message))
+
+
+async def _as_secret_send(message):
     if message:
         if isinstance(message, str):
             await client.send_message(secret_channel, message)
@@ -69,14 +62,6 @@ async def on_ready():
     print('----------------')
     print('secRet bot ready')
     print('----------------')
-
-    # DING
-    now = datetime.now()
-    c_min = now.minute
-    c_sec = now.second
-    l_min = 59 - c_min
-    l_sec = 59 - c_sec + (60 * l_min)
-    threading.Timer(l_sec, ding).start()
 
 
 @client.event
