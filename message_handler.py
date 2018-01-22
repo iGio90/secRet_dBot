@@ -50,7 +50,10 @@ class MessageHandler(object):
         for commit in self.git_repo.get_commits():
             if k == 10:
                 break
-            embed.add_field(name=commit.commit.message, value=commit.commit.author.name, inline=False)
+            commit_date = '{0:%Y-%m-%d %H:%M:%S}'.format(commit.commit.author.date)
+            embed.add_field(name=commit.commit.message,
+                            value=commit.commit.author.name + " - " + commit_date,
+                            inline=False)
             k += 1
         return embed
 
@@ -73,5 +76,6 @@ class MessageHandler(object):
             await self.client.send_message(message.channel, "[*] restarting secRet")
             os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
         elif message.content.startswith("!cleanup"):
-            await self.client.send_message(message.channel, '[*] cleaning!')
-            await self.client.purge_from(message.channel)
+            c = len(await self.client.purge_from(message.channel))
+            await self.client.send_message(message.channel, '[*] ' + str(c) + ' message deleted!')
+
