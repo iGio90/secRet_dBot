@@ -49,6 +49,8 @@ def ding():
 @asyncio.coroutine
 @bus.on('secret_send')
 async def secret_send(message=None):
+    print("secret_send called")
+    print("message: " + message)
     """
     can be used from other threads :P
 
@@ -73,18 +75,18 @@ async def on_ready():
     c_min = now.minute
     c_sec = now.second
     l_min = 59 - c_min
-    l_sec = 59 - c_sec + (60 * c_min)
+    l_sec = 59 - c_sec + (60 * l_min)
     threading.Timer(l_sec, ding).start()
 
 
 @client.event
 async def on_member_join(member):
-    print('--> ' + member.nick + ' has joined.')
+    await client.send_message(welcome_channel, '[*] ' + member.mention() + ' has joined!')
 
 
 @client.event
 async def on_member_remove(member):
-    print('--> ' + member.nick + ' has joined.')
+    await client.send_message(welcome_channel, '[*] ' + member.mention() + ' has left!')
 
 
 @client.event
