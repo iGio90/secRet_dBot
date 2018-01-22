@@ -24,11 +24,19 @@ commands_map = {
     },
 }
 
+dev_commands_map = {
+}
+
 admin_commands_map = {
     "cleanup": {
         "author": "iGio90",
         "description": "cleanup the channel.",
         "function": "cleanup"
+    },
+    "exec": {
+        "author": "iGio90",
+        "description": "run shell command",
+        "function": "exec"
     },
     "restart": {
         "author": "iGio90",
@@ -40,7 +48,13 @@ admin_commands_map = {
 
 class MessageHandler(object):
     """
-    handle messages from discord #secRet channel
+    handle messages from discord #secRet channel.
+    code here your stuffs keeping the following flow:
+    1) add the command to the map (always follow alphabetical order)
+    2) add the function handler to this class, which must be async
+    3) **OPTIONAL** check other functions to have a very quick understanding
+    4) if it's too much code, consider create your own class/scripts inside commands package
+       and feed it with client, bus and whatever is needed
 
     :param: bus
     event bus
@@ -53,7 +67,6 @@ class MessageHandler(object):
     :param: git_repo
     the git repository
     """
-
     def __init__(self, bus, client, secret_server, secret_channel, git_repo):
         self.bus = bus
         self.client = client
@@ -73,23 +86,15 @@ class MessageHandler(object):
         list the commands from both the maps
         """
         # user commands
-        embed = utils.build_default_embed('', '', discord.Color.gold())
-        embed.add_field(name="user commands", value='-', inline=False)
-        for cmd_name, cmd in commands_map.items():
-            description = ''
-            if 'description' in cmd:
-                description = cmd['description']
-            embed.add_field(name="!" + cmd_name, value=description, inline=False)
+        embed = utils.build_commands_embed(commands_map, 'user commands', discord.Color.red())
+        await self.client.send_message(message.channel, embed=embed)
+
+        # dev commands
+        embed = utils.build_commands_embed(dev_commands_map, 'dev commands', discord.Color.red())
         await self.client.send_message(message.channel, embed=embed)
 
         # admin commands
-        embed = utils.build_default_embed('', '', discord.Color.teal())
-        embed.add_field(name="admin commands", value='-', inline=False)
-        for cmd_name, cmd in admin_commands_map.items():
-            description = ''
-            if 'description' in cmd:
-                description = cmd['description']
-            embed.add_field(name="!" + cmd_name, value=description, inline=False)
+        embed = utils.build_commands_embed(admin_commands_map, 'admin commands', discord.Color.red())
         await self.client.send_message(message.channel, embed=embed)
 
     async def commits(self, message):
@@ -114,6 +119,12 @@ class MessageHandler(object):
             embed = utils.build_default_embed('', '', discord.Color.dark_green())
             embed.add_field(name="contribute and improve secRet dBot", value=m, inline=False)
             await self.client.send_message(message.channel, embed=embed)
+
+    async def exec(self, message):
+        cmd = message.content.replace("!exec ", "")
+        r = utils.run_shell_command(cmd)
+        for line in r:
+            await self.client.send_message(message.channel, line)
 
     async def help(self, message):
         """
@@ -174,6 +185,9 @@ class MessageHandler(object):
         # get base command
         base_command = content.split(" ")
 
+        # the function to call
+        cmd_funct = None
+
         # parse base commands (not mapped)
         if content == 'commands':
             await self.commands(message)
@@ -181,14 +195,19 @@ class MessageHandler(object):
             await self.rules(message)
         elif content == 'devme':
             await self.devme(message)
-        # parse user commands
         elif base_command[0] in commands_map:
-            command = commands_map[base_command[0]]
-            command_function = getattr(self, command["function"])
-            await command_function(message)
-        # check and parse admin commands
-        elif utils.is_admin(message.author):
-            if base_command[0] in admin_commands_map:
-                command = admin_commands_map[base_command[0]]
-                command_function = getattr(self, command["function"])
-                await command_function(message)
+            # user commands
+            cmd_funct = self._get_command_function(commands_map, base_command)
+        elif base_command[0] in dev_commands_map and utils.is_dev(message.author):
+            # dev commands
+            cmd_funct = self._get_command_function(dev_commands_map, base_command)
+        elif base_command[0] in admin_commands_map and utils.is_admin(message.author):
+            # admin commands
+            cmd_funct = self._get_command_function(admin_commands_map, base_command)
+
+        if cmd_funct is not None:
+            await cmd_funct(message)
+
+    def _get_command_function(self, map, base_command):
+        command = map[base_command[0]]
+        return getattr(self, command["function"])
