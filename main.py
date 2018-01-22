@@ -52,7 +52,6 @@ async def on_member_remove(member):
 
 @client.event
 async def on_message(message):
-    print(message.channel.id)
     await message_handler.on_message(message)
 
 
