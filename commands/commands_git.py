@@ -172,12 +172,12 @@ async def link_git(message, discord_client, git_client):
         pass
 
 
-async def merge_pr(message, discord_client, git_repo, pr):
-    git_pr = git_repo.get_pull(pr.pull_number)
+async def merge_pr(message, discord_client, git_repo, db_pull_doc):
+    git_pr = git_repo.get_pull(db_pull_doc.pull_number)
     if git_pr and git_pr.mergeable:
-        embed = discord.Embed(title=pr.pull_title, type='rich', description=pr.user_name,
+        embed = discord.Embed(title=db_pull_doc.pull_title, type='rich', description=db_pull_doc.user_name,
                               color=discord.Color.green())
-        for discord_id, vote in pr.votes.items():
+        for discord_id, vote in db_pull_doc.votes.items():
             embed.add_field(name=vote['name'],
                             value=str(vote['points']),
                             inline=True)
@@ -189,6 +189,7 @@ async def merge_pr(message, discord_client, git_repo, pr):
                                        status.sha + ' **merged**. scheduled for next auto-update',
                                        discord.Color.green())
             await discord_client.send_message(message.channel, embed=embed)
+            await on_post_merge(message, discord_client, db_pull_doc)
         else:
             embed = utils.simple_embed('error',
                                        status.message,
@@ -204,6 +205,25 @@ async def merge_pr(message, discord_client, git_repo, pr):
                                        'the pr can\'t be merged. check conflicts and resolve them!',
                                        discord.Color.green())
         await discord_client.send_message(message.channel, embed=embed)
+
+
+async def on_post_merge(message, discord_client, db_pull_doc):
+    try:
+        user_doc = user.User.objects.get(git_user_id=db_pull_doc.user_id)
+        reward_points = db_pull_doc.required_points / 15.5
+
+        # add points
+        user_doc.points += reward_points
+        user_doc.save()
+
+        if user_doc.discord_mention:
+            desc = '**' + str(reward_points) + '** given to: **' + user_doc.discord_mention + '**'
+        else:
+            desc = '**' + str(reward_points) + '** given to: **' + user_doc.discord_name + '**'
+        embed = utils.simple_embed('points attribution', desc, discord.Color.green())
+        await discord_client.send_message(message.channel, embed=embed)
+    except user.DoesNotExist as e:
+        pass
 
 
 async def pr(message, discord_client, git_repo):
