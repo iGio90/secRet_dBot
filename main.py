@@ -52,6 +52,7 @@ class SecRetDBot(object):
         self.bus.add_event(self.secret_send, 'secret_send')
         self.bus.add_event(self.secret_restart, 'secret_restart')
         self.bus.add_event(self.secret_ping, 'secret_ping')
+        self.bus.add_event(self.secret_command, 'secret_command')
 
         # register discord events
         self.discord_client.event(self.on_ready)
@@ -73,6 +74,33 @@ class SecRetDBot(object):
     async def on_message(self, message):
         await self.message_handler.on_message(message)
 
+    def secret_command(self, command):
+        """
+        allow to quickly send a command using bus.
+        a short usage case for this:
+        somewhere inside your new function script you want to handle an error
+        by simply printing the help of the command.
+        as we are sending it from discord, we can use the bus to send a "!help *function_name"
+        with bus
+        """
+        message = discord.Message()
+        message.channel = self.secret_channel
+        message.server = self.secret_server
+        message.content = command
+        self.main_loop.create_task(self.message_handler.secret_status(None))
+
+    def secret_ping(self):
+        """
+        hourly ping from secret parallel thread
+        """
+        self.main_loop.create_task(self.message_handler.secret_status(None))
+
+    def secret_restart(self):
+        """
+        restart the bot with updated code
+        """
+        self.main_loop.create_task(self._restart())
+
     def secret_send(self, message=None):
         """
         can be used from other threads :P
@@ -81,18 +109,6 @@ class SecRetDBot(object):
         a string or embed object
         """
         self.main_loop.create_task(self._as_secret_send(message))
-
-    def secret_restart(self):
-        """
-        restart the bot with updated code
-        """
-        self.main_loop.create_task(self._restart())
-
-    def secret_ping(self):
-        """
-        hourly ping from secret parallel thread
-        """
-        self.main_loop.create_task(self.message_handler.secret_status(None))
 
     def start(self):
         """

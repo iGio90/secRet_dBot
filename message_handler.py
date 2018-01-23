@@ -112,7 +112,7 @@ class MessageHandler(object):
             await self.discord_client.send_message(message.channel, line)
 
     async def git(self, message):
-        await commands_git.git(message, self.discord_client, self.git_client, self.git_repo)
+        await commands_git.git(message, self.discord_client, self.git_client, self.git_repo, self.bus)
 
     async def help(self, message):
         """

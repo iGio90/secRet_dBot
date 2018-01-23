@@ -87,11 +87,11 @@ async def get_last_commits(message, discord_client, git_repo):
     await discord_client.send_message(message.channel, embed=embed)
 
 
-async def git(message, discord_client, git_client, git_repo):
+async def git(message, discord_client, git_client, git_repo, bus):
     parts = message.content.split(" ")
 
     if len(parts) < 2:
-        await print_git_help(message, discord_client)
+        await print_git_help(bus)
     else:
         if parts[1] == 'commits':
             await get_last_commits(message, discord_client, git_repo)
@@ -247,7 +247,7 @@ async def pr(message, discord_client, git_repo):
                                                                                discord.Color.red()))
             except Exception as e:
                 await discord_client.send_message(message.channel,
-                                                  embed=utils.simple_embed('error', 'usage: !pr check *id',
+                                                  embed=utils.simple_embed('error', 'usage: !pr check *pull_id',
                                                                            discord.Color.red()))
         elif parts[1] == 'downvote':
             try:
@@ -353,13 +353,8 @@ async def pr(message, discord_client, git_repo):
                                                                            discord.Color.red()))
 
 
-async def print_git_help(message, discord_client):
-    embed = discord.Embed(title='git commands', type='rich', description='-', color=discord.Color(0xA2746A))
-    embed.add_field(name='!git commits', value="print latest secRet dBot commits", inline=False)
-    embed.add_field(name='!git link *github_nickname', value="link your github id to your discord user", inline=False)
-    embed.add_field(name='!git search user *keyword', value="search for users", inline=False)
-    embed.add_field(name='!git unlink', value="unlink your github id. will also reset your points", inline=False)
-    await discord_client.send_message(message.channel, embed=embed)
+async def print_git_help(bus):
+    bus.emit('secret_command', command='!help git')
 
 
 async def print_pr(message, discord_client, prq, db_pull_doc):
@@ -385,9 +380,9 @@ async def print_pr_help(message, discord_client, git_repo):
     embed = discord.Embed(title='pull requests list', type='rich',
                           description='',
                           color=discord.Colour(0xA2746A))
-    embed.add_field(name='!pr check *id', value="try to re-merge after conflict resolution", inline=False)
-    embed.add_field(name='!pr upvote *id', value="upvote a pull request", inline=True)
-    embed.add_field(name='!pr downvote *id', value="downvote a pull request", inline=True)
+    embed.add_field(name='!pr check *pull_id', value="try to re-merge after conflict resolution", inline=False)
+    embed.add_field(name='!pr upvote *pull_id', value="upvote a pull request", inline=True)
+    embed.add_field(name='!pr downvote *pull_id', value="downvote a pull request", inline=True)
     await discord_client.send_message(message.channel, embed=embed)
     await print_pr_list(message, discord_client, git_repo)
 
