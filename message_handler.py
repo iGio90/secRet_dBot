@@ -1,5 +1,6 @@
 import asyncio
 import json
+import urllib
 
 import discord
 import utils
@@ -147,6 +148,21 @@ class MessageHandler(object):
     async def pr(self, message):
         await commands_git.pr(message, self.discord_client, self.git_repo)
 
+    async def qr_generate(self, message):
+        embed = discord.Embed(title='QR Code generator', type='rich',
+                              color=discord.Colour.green())
+        message_data = message.content[4:]
+        data = urllib.parse.quote_plus(message_data)
+        if data is "":
+            embed.add_field(name="Error", value="Please man, give me some data!", inline=False)
+        else:
+            if len(message_data) > 300:
+                embed.add_field(name="Error", value="Data must be < 300 char", inline=False)
+            else:
+                embed.set_image(url="https://api.qrserver.com/v1/create-qr-code/?data=" + data + "&size=200x200")
+
+        await self.discord_client.send_message(message.channel, embed=embed)
+
     async def repeat(self, message):
         if 'function' in self.last_command:
             await self.last_command['function'](
@@ -174,6 +190,7 @@ class MessageHandler(object):
 
     async def statsroyale(self, message):
         await commands_statsroyale.handle(self.discord_client, message)
+
 
     async def on_message(self, message):
         """
