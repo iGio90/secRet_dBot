@@ -44,9 +44,6 @@ class SecRet(Thread):
         commit = commits[0]
         if commit.sha != self.last_commit_sha:
             self.bus.emit('secret_send', message='**updating secRet sources**')
-            while commit.sha != self.last_commit_sha:
-                self.bus.emit('secret_send', message='**merging:**' + ' ' + commit.commit.message +
-                                                     '\n**from** ' + commit.author.name)
             # use pipe and shell.. feel free to code a better way
             os.system("git fetch origin master")
             os.system("git reset --h FETCH_HEAD")
