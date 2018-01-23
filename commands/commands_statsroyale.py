@@ -11,7 +11,7 @@ async def handle(client, message):
                               color=discord.Colour.light_grey())
         embed.set_thumbnail(url="http://lh3.googleusercontent.com/3dnqf0Te-6_"
                                 "SucM52DR3KhvlM2z46mRIMr8K5KYJlZq0Xbei6JDjkbHWRWQHtkhnk5yS=w300")
-        embed.add_field(name="!statsroyale android_stats", value="print statistics from android app", inline=False)
+        embed.add_field(name="!statsroyale android stats", value="print statistics from android app", inline=False)
         await client.send_message(message.channel, embed=embed)
     else:
         if commands[1] == 'android':
