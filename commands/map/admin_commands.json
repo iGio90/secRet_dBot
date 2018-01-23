@@ -13,10 +13,5 @@
         "author": "iGio90",
         "description": "restart secRet. flush scripts",
         "function": "restart"
-    },
-    "update": {
-        "author": "iGio90",
-        "description": "check for new updates on git repo",
-        "function": "core_update"
     }
 }

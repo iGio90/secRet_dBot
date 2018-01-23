@@ -158,7 +158,7 @@ async def link_git(message, discord_client, git_client):
                     try:
                         u.save()
                         embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
-                                                   str(message.author.id),
+                                                   message.author.id,
                                                    discord.Color.green())
                         await discord_client.send_message(message.channel, embed=embed)
                     except user.NotUniqueError as e:
@@ -167,7 +167,6 @@ async def link_git(message, discord_client, git_client):
                                                    str(u.discord_id), discord.Color.red())
                         await discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
-                print(e)
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
                 await discord_client.send_message(message.channel, embed=embed)
     except Exception as e:
