@@ -7,23 +7,11 @@
     "exec": {
         "author": "iGio90",
         "description": "run shell command on the host machine",
-        "function": "exec",
-        "args": [
-            {
-                "name": "cmd...",
-                "type": "string",
-                "required": true
-            }
-        ]
+        "function": "exec"
     },
     "restart": {
         "author": "iGio90",
         "description": "restart secRet. flush scripts",
         "function": "restart"
-    },
-    "status": {
-        "author": "iGio90",
-        "description": "bot services status",
-        "function": "secret_status"
     }
 }

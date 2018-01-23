@@ -6,6 +6,8 @@ import math
 
 
 ICON = "https://steemit-production-imageproxy-upload.s3.amazonaws.com/DQmVyhQzqP7TF1SKuDWJkY3HuEGzv3ZpWGzLoJSAk42E81w"
+REPO = "https://github.com/iGio90/secRet_dBot"
+REPO_SHORT = "iGio90/secRet_dBot"
 
 
 def build_default_embed(title, description, color, icon=True, author=True):
@@ -20,10 +22,9 @@ def build_default_embed(title, description, color, icon=True, author=True):
 
 
 def build_commands_embed(map, title, color):
-    embed = build_default_embed('', '', color, icon=False, author=False)
-    embed.add_field(name=title, value='-', inline=False)
+    embed = build_default_embed(title, '** **', color, icon=False, author=False)
     for cmd_name, cmd in map.items():
-        description = ''
+        description = '** **'
         if 'description' in cmd:
             description = cmd['description']
         embed.add_field(name="!" + cmd_name, value=description, inline=False)

@@ -4,8 +4,9 @@ import json
 import discord
 import utils
 
-from commands import command_status, commands_git, commands_statsroyale
-from datetime import datetime, time, timedelta
+from commands import command_help, command_status, \
+    commands_git, commands_statsroyale
+from datetime import datetime
 from mongo_models import command_log
 
 
@@ -67,24 +68,10 @@ class MessageHandler(object):
 
     async def commands(self, message):
         """
-        list the commands from both the maps
+        list the commands
         """
-        # admin commands
-        embed = utils.build_commands_embed(self.admin_commands_map, 'admin commands', discord.Color.red())
-        await self.discord_client.send_message(message.channel, embed=embed)
-
-        # dev commands
-        embed = utils.build_commands_embed(self.dev_commands_map, 'dev commands', discord.Color.blue())
-        await self.discord_client.send_message(message.channel, embed=embed)
-
-        # user commands
-        embed = utils.build_commands_embed(self.commands_map, 'user commands', discord.Color.light_grey())
-        await self.discord_client.send_message(message.channel, embed=embed)
-
-        # help hint for sub commands
-        embed = utils.build_default_embed('!help *command_name', 'print additional info for a specific command',
-                                          discord.Color.green(), icon=False, author=False)
-        await self.discord_client.send_message(message.channel, embed=embed)
+        await command_help.commands(message, self.discord_client, self.admin_commands_map,
+                                    self.dev_commands_map, self.commands_map)
 
     async def commands_history(self, message):
         cmd_list = message.content.split(" ")
@@ -131,26 +118,17 @@ class MessageHandler(object):
         """
         print help
         """
-        embed = discord.Embed(title='', type='rich',
-                              description="goal is to build me as an automated **bot** with whatever feature "
-                                          "people would like to code. I'll soon run on a virtual"
-                                          " machine with **root** privileges,"
-                                          "but meanwhile, I can already do something:\n\n",
-                              color=discord.Colour.dark_red())
-        embed.set_thumbnail(url=utils.ICON)
-        embed.set_author(name="secRet", url="https://secret.re")
-        embed.add_field(name="!commands", value="something to interact with me", inline=False)
-        embed.add_field(name="!devme", value="info and help about coding features", inline=False)
-        embed.add_field(name="!rules", value="a world without rules... mhhh chaos", inline=False)
-        await self.discord_client.send_message(message.channel, embed=embed)
+        await command_help.help(message, self.discord_client, [
+            self.admin_commands_map, self.dev_commands_map, self.commands_map
+        ])
 
     async def pr(self, message):
         await commands_git.pr(message, self.discord_client, self.git_repo)
 
     async def repeat(self, message):
-        if 'function' in self.last_command:
-            await self.last_command['function'](
-                self.last_command['message'])
+        if 'function' in self.last_command and 'message' in self.last_command:
+            if message.author.id == self.last_command['message'].author.id:
+                await self.last_command['function'](self.last_command['message'])
 
     async def restart(self, message):
         """
@@ -200,14 +178,7 @@ class MessageHandler(object):
         # the function to call
         cmd_funct = None
 
-        # parse base commands (not mapped)
-        if content == 'commands':
-            await self.commands(message)
-        elif content == 'rules':
-            await self.rules(message)
-        elif content == 'devme':
-            await self.devme(message)
-        elif base_command[0] in self.commands_map:
+        if base_command[0] in self.commands_map:
             # user commands
             cmd_funct = self._get_command_function(self.commands_map, base_command)
         elif base_command[0] in self.dev_commands_map and utils.is_dev(message.author):

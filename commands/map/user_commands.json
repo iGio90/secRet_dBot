@@ -4,6 +4,16 @@
         "description": "repeat last command",
         "function": "repeat"
     },
+    "commands": {
+        "author": "iGio90",
+        "description": "list commands",
+        "function": "commands"
+    },
+    "devme": {
+        "author": "iGio90",
+        "description": "short help about secRet features implementation",
+        "function": "help"
+    },
     "help": {
         "author": "iGio90",
         "description": "initial help",
@@ -12,7 +22,21 @@
     "git": {
         "author": "iGio90",
         "description": "github commands",
-        "function": "git"
+        "function": "git",
+        "sub_commands": [
+            {
+                "name": "commits",
+                "description": "list recent secRet dBot commits"
+            },
+            {
+                "name": "link",
+                "description": "link your github login name to your discord id"
+            },
+            {
+                "name": "search user",
+                "description": "search for a specific user name on git"
+            }
+        ]
     },
     "pr": {
         "author": "iGio90",
@@ -21,20 +45,31 @@
         "sub_commands": [
             {
                 "name": "check",
-                "description": "check if the pull request has enough vote to be merged and eventually try to merge",
-                "args": [
-                    {
-                        "name": "pull_request_id",
-                        "type": "int",
-                        "required": true
-                    }
-                ]
+                "description": "check if the pull request has enough vote to be merged and eventually try to merge"
+            },
+            {
+                "name": "upvote",
+                "description": "upvote a pull request"
+            },
+            {
+                "name": "downvote",
+                "description": "downvote a pull request"
             }
         ]
+    },
+    "rules": {
+        "author": "iGio90",
+        "description": "secRet rules",
+        "function": "rules"
     },
     "statsroyale": {
         "author": "iGio90",
         "description": "statsroyale commands",
         "function": "statsroyale"
+    },
+    "status": {
+        "author": "iGio90",
+        "description": "bot services status",
+        "function": "secret_status"
     }
 }

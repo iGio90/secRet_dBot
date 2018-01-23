@@ -10,9 +10,13 @@ def calculate_pr_points(git_user_id, git_user_name, message):
     try:
         user_doc = user.User.objects.get(git_user_id=git_user_id)
     except user.DoesNotExist as e:
-        user_doc = user.User(git_user_id=git_user_id,
-                             git_user_name=git_user_name)
-        user_doc.save()
+        try:
+            user_doc = user.User(git_user_id=git_user_id,
+                                 git_user_name=git_user_name)
+            user_doc.save()
+        except Exception as e:
+            pass
+
     points = user_doc.points
     m_c = len(message.server.members)
     req = 0.7 * m_c
@@ -70,6 +74,7 @@ async def get_last_commits(message, discord_client, git_repo):
     """
     embed = discord.Embed(title='recent secRet dBot commits', type='rich', description='',
                           color=discord.Colour(0xA2746A))
+    embed.set_author(name=utils.REPO_SHORT, url=utils.REPO, icon_url=utils.ICON)
     k = 0
     for commit in git_repo.get_commits():
         if k == 10:
@@ -133,7 +138,6 @@ async def git(message, discord_client, git_client, git_repo):
 async def link_git(message, discord_client, git_client):
     parts = message.content.split(" ")
     try:
-        print(message.content)
         git_nick_name = parts[2]
         try:
             u = user.User.objects.get(discord_id=message.author.id)
@@ -143,22 +147,24 @@ async def link_git(message, discord_client, git_client):
         except user.DoesNotExist:
             try:
                 git_user = git_client.legacy_search_users(git_nick_name)[0]
-                u = user.User(git_user_id=git_user.id,
-                              discord_id=message.author.id,
-                              discord_name=message.author.display_name,
-                              discord_mention=message.author.mention)
-                u.git_user_name = git_user.name
-                try:
-                    u.save()
-                    embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
-                                               str(message.author.id),
-                                               discord.Color.green())
-                    await discord_client.send_message(message.channel, embed=embed)
-                except user.NotUniqueError as e:
-                    u = user.User.objects.get(git_user_id=git_user.login)
-                    embed = utils.simple_embed('error', '**' + git_user.login + '** already linked with: ' +
-                                               u.discord_id, discord.Color.red())
-                    await discord_client.send_message(message.channel, embed=embed)
+                r = 'yes'
+                if r == 'yes' or r == 'y':
+                    u = user.User(git_user_id=git_user.id,
+                                  discord_id=message.author.id,
+                                  discord_name=message.author.display_name,
+                                  discord_mention=message.author.mention)
+                    u.git_user_name = git_user.name
+                    try:
+                        u.save()
+                        embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
+                                                   str(message.author.id),
+                                                   discord.Color.green())
+                        await discord_client.send_message(message.channel, embed=embed)
+                    except user.NotUniqueError as e:
+                        u = user.User.objects.get(git_user_id=git_user.login)
+                        embed = utils.simple_embed('error', '**' + git_user.login + '** already linked with: ' +
+                                                   u.discord_id, discord.Color.red())
+                        await discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
                 await discord_client.send_message(message.channel, embed=embed)
@@ -170,7 +176,7 @@ async def merge_pr(message, discord_client, git_repo, pr):
     git_pr = git_repo.get_pull(pr.pull_number)
     if git_pr and git_pr.mergeable:
         embed = discord.Embed(title=pr.pull_title, type='rich', description=pr.user_name,
-                              color=utils.random_color())
+                              color=discord.Color.green())
         for discord_id, vote in pr.votes.items():
             embed.add_field(name=vote['name'],
                             value=str(vote['points']),
@@ -228,10 +234,15 @@ async def pr(message, discord_client, git_repo):
                 id = int(parts[2])
                 try:
                     db_pull_doc = pull_vote.PullVote.objects.get(pull_id=id)
-                    vote_points, user_name = calculate_vote_points(message, len(db_pull_doc.votes),
-                                                                   db_pull_doc.required_points)
+                    vote_points = -1
+                    user_name = ''
+                    try:
+                        vote_points, user_name = calculate_vote_points(message, len(db_pull_doc.votes),
+                                                                       db_pull_doc.required_points)
+                    except Exception as e:
+                        pass
                     if vote_points < 0:
-                        desc = 'link your github with **!linkgit**'
+                        desc = 'link your github with **!git link *git_user_name**'
                         await discord_client.send_message(message.channel,
                                                           embed=utils.simple_embed('info', desc, discord.Color.blue()))
                     elif message.author.id in db_pull_doc.votes:
@@ -258,15 +269,20 @@ async def pr(message, discord_client, git_repo):
                                                                                discord.Color.red()))
             except Exception as e:
                 await discord_client.send_message(message.channel,
-                                                  embed=utils.simple_embed('error', 'usage: !pr downvote *id',
+                                                  embed=utils.simple_embed('error', 'usage: !pr downvote *pull_id',
                                                                            discord.Color.red()))
         elif parts[1] == 'upvote':
             try:
                 id = int(parts[2])
                 try:
                     db_pull_doc = pull_vote.PullVote.objects.get(pull_id=id)
-                    vote_points, user_name = calculate_vote_points(message, len(db_pull_doc.votes),
-                                                                   db_pull_doc.required_points)
+                    vote_points = -1
+                    user_name = ''
+                    try:
+                        vote_points, user_name = calculate_vote_points(message, len(db_pull_doc.votes),
+                                                                       db_pull_doc.required_points)
+                    except Exception as e:
+                        pass
                     if vote_points < 0:
                         desc = 'link your github with **!linkgit**'
                         await discord_client.send_message(message.channel,
@@ -313,7 +329,7 @@ async def pr(message, discord_client, git_repo):
                                                                                discord.Color.red()))
             except Exception as e:
                 await discord_client.send_message(message.channel,
-                                                  embed=utils.simple_embed('error', 'usage: !pr upvote *id',
+                                                  embed=utils.simple_embed('error', 'usage: !pr upvote *pull_id',
                                                                            discord.Color.red()))
 
 
