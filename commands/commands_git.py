@@ -217,6 +217,7 @@ async def on_post_merge(message, discord_client, db_pull_doc):
     try:
         user_doc = user.User.objects.get(git_user_id=db_pull_doc.user_id)
         reward_points = db_pull_doc.required_points / 15.5
+        reward_points = float("{0:.2f}".format(reward_points))
 
         # add points
         user_doc.points += reward_points
