@@ -1,4 +1,3 @@
-import asyncio
 import json
 import urllib
 
@@ -168,7 +167,6 @@ class MessageHandler(object):
 
     async def statsroyale(self, message):
         await commands_statsroyale.handle(self.discord_client, message)
-
 
     async def on_message(self, message):
         """
