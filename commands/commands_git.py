@@ -25,7 +25,7 @@ def calculate_pr_points(git_user_id, git_user_name, message):
         req = req - dec
         if req < 0:
             req = m_c % 10
-    return req
+    return float("{0:.2f}".format(req))
 
 
 def calculate_vote_points(message, votes, required_points):
@@ -42,7 +42,7 @@ def calculate_vote_points(message, votes, required_points):
             # an unique vote can't approve a pr
             # min is 2 even for admins
             # grant the 90% of the points
-            points = required_points * 90 / 100
+            points = float("{0:.2f}".format(required_points * 90 / 100))
         return points, user_doc.discord_name
     except user.DoesNotExist as e:
         return -1
@@ -221,6 +221,7 @@ async def on_post_merge(message, discord_client, db_pull_doc):
 
         # add points
         user_doc.points += reward_points
+        user_doc.points = float("{0:.2f}".format(user_doc.points))
         user_doc.save()
 
         if user_doc.discord_mention:
@@ -278,6 +279,7 @@ async def pr(message, discord_client, git_repo):
                                                                                    discord.Color.red()))
                     else:
                         db_pull_doc.points -= vote_points
+                        db_pull_doc.points = float("{0:.2f}".format(db_pull_doc.points))
                         db_pull_doc.votes[message.author.id] = {
                             'created': time.time(),
                             'name': user_name,
@@ -320,6 +322,7 @@ async def pr(message, discord_client, git_repo):
                                                                                    discord.Color.red()))
                     else:
                         db_pull_doc.points += vote_points
+                        db_pull_doc.points = float("{0:.2f}".format(db_pull_doc.points))
                         if db_pull_doc.points >= db_pull_doc.required_points:
                             db_pull_doc.points = db_pull_doc.required_points
 
