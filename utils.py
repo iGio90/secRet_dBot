@@ -78,3 +78,10 @@ def run_shell_command(command):
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          shell=True, universal_newlines=True)
     return iter(p.stdout.readline, b'')
+
+
+def simple_embed(title, description, color):
+    embed = discord.Embed(title=title, type='rich',
+                          description=description,
+                          color=color)
+    return embed

@@ -31,11 +31,11 @@ welcome_channel = discord.Channel(id='404795628019777557',
                                   server=secret_server)
 
 # github
-g = Github(configs['github_username'], configs['github_password'])
-repo = g.get_repo('iGio90/secRet_dBot')
+git_client = Github(configs['github_username'], configs['github_password'])
+repo = git_client.get_repo('iGio90/secRet_dBot')
 
 # message handler
-message_handler = MessageHandler(bus, discord_client, mongo_db, secret_server, secret_channel, repo)
+message_handler = MessageHandler(bus, discord_client, mongo_db, secret_server, secret_channel, git_client, repo)
 
 # secret thread for additional periodic stuffs
 secret = SecRet(bus, repo)
@@ -67,7 +67,7 @@ def secret_ping():
     """
     hourly ping from secret parallel thread
     """
-    message_handler.status(None)
+    main_loop.create_task(message_handler.secret_status(None))
 
 
 @discord_client.event

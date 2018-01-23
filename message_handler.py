@@ -26,6 +26,11 @@ admin_commands_map = {
         "author": "iGio90",
         "description": "bot services status",
         "function": "secret_status"
+    },
+    "pr": {
+        "author": "iGio90",
+        "description": "check and vote pull requests",
+        "function": "pr"
     }
 }
 
@@ -38,15 +43,20 @@ dev_commands_map = {
 }
 
 commands_map = {
-    "commits": {
+    "!": {
         "author": "iGio90",
-        "description": "last 10 commits on secRet repo",
-        "function": "commits"
+        "description": "repeat last command",
+        "function": "repeat"
     },
     "help": {
         "author": "iGio90",
         "description": "initial help",
         "function": "help"
+    },
+    "git": {
+        "author": "iGio90",
+        "description": "github commands",
+        "function": "git"
     },
     "statsroyale": {
         "author": "iGio90",
@@ -76,17 +86,21 @@ class MessageHandler(object):
     instance of discord server object holding server id
     :param: secret_channel
     instance of discord channel object holdin #secRet id
+    :param: git_client
+    instance of git client
     :param: git_repo
     the git repository
     """
 
-    def __init__(self, bus, discord_client, mongo_db, secret_server, secret_channel, git_repo):
+    def __init__(self, bus, discord_client, mongo_db, secret_server, secret_channel, git_client, git_repo):
+        self.last_command = {}
         self.start_time = datetime.now().timestamp()
         self.bus = bus
         self.discord_client = discord_client
         self.mongo_db = mongo_db
         self.secret_server = secret_server
         self.secret_channel = secret_channel
+        self.git_client = git_client
         self.git_repo = git_repo
 
     async def cleanup(self, message):
@@ -94,7 +108,11 @@ class MessageHandler(object):
         clean the whole channel. delete all messages
         """
         c = len(await self.discord_client.purge_from(message.channel, limit=100000))
-        await self.discord_client.send_message(message.channel, '**[*]** ' + str(c) + ' message deleted!')
+        await self.discord_client.send_message(
+            message.channel,
+            embed=utils.simple_embed('done',
+                                     str(c) + " message deleted",
+                                     discord.Color.dark_green()))
 
     async def commands(self, message):
         """
@@ -123,14 +141,10 @@ class MessageHandler(object):
             if cmd_list[1] == 'clear':
                 c = command_log.CommandLog.objects.count()
                 command_log.CommandLog.drop_collection()
-                await self.discord_client.send_message(message.channel, "**[*]** removed " + str(c) + " entries")
-
-    async def commits(self, message):
-        """
-        list last 10 commits in the repo
-        """
-        commits_embed = commands_git.build_commit_list_embed(self.git_repo)
-        await self.discord_client.send_message(message.channel, embed=commits_embed)
+                await self.discord_client.send_message(message.channel,
+                                                       embed=utils.simple_embed('done',
+                                                                                "removed " + str(c) + " entries",
+                                                                                discord.Color.dark_green()))
 
     async def devme(self, message):
         s = open('DOCUMENTATION.md', 'r')
@@ -154,6 +168,9 @@ class MessageHandler(object):
         for line in r:
             await self.discord_client.send_message(message.channel, line)
 
+    async def git(self, message):
+        await commands_git.git(message, self.discord_client, self.git_client, self.git_repo)
+
     async def help(self, message):
         """
         print help
@@ -170,6 +187,14 @@ class MessageHandler(object):
         embed.add_field(name="!devme", value="info and help about coding features", inline=False)
         embed.add_field(name="!rules", value="a world without rules... mhhh chaos", inline=False)
         await self.discord_client.send_message(message.channel, embed=embed)
+
+    async def pr(self, message):
+        await commands_git.pr(message, self.discord_client, self.git_repo)
+
+    async def repeat(self, message):
+        if 'function' in self.last_command:
+            await self.last_command['function'](
+                self.last_command['message'])
 
     async def restart(self, message):
         """
@@ -188,8 +213,8 @@ class MessageHandler(object):
         await self.discord_client.send_message(message.channel, embed=embed)
 
     async def secret_status(self, message):
-        await command_status.secret_status(message, self.discord_client, self.mongo_db,
-                                    self.start_time, self.secret_channel)
+        await command_status.secret_status(message, self.discord_client, self.git_client,
+                                           self.mongo_db, self.start_time, self.secret_channel)
 
     async def statsroyale(self, message):
         await commands_statsroyale.handle(self.discord_client, message)
@@ -237,6 +262,11 @@ class MessageHandler(object):
             cmd_funct = self._get_command_function(admin_commands_map, base_command)
 
         if cmd_funct is not None:
+            # store last command function for repeat
+            if base_command[0] != '!':
+                self.last_command['function'] = cmd_funct
+                self.last_command['message'] = message
+
             # log command issued on mongo
             cmd_log = command_log.CommandLog(user_name=message.author.name,
                                              user_id=message.author.id,
