@@ -1,22 +1,36 @@
 {
     "!": {
         "author": "iGio90",
-        "description": "repeat last command",
+        "description": "repeat last command. author must be the same of the command to be repeated",
         "function": "repeat"
     },
     "commands": {
         "author": "iGio90",
         "description": "list commands",
-        "function": "commands"
+        "function": "commands",
+        "sub_commands": [
+            {
+                "name": "admin",
+                "description": "list admin commands"
+            },
+            {
+                "name": "dev",
+                "description": "list dev commands"
+            },
+            {
+                "name": "user",
+                "description": "list user commands"
+            }
+        ]
     },
     "devme": {
         "author": "iGio90",
         "description": "short help about secRet features implementation",
-        "function": "help"
+        "function": "devme"
     },
     "help": {
         "author": "iGio90",
-        "description": "initial help",
+        "description": "print initial help",
         "function": "help"
     },
     "git": {
@@ -35,6 +49,10 @@
             {
                 "name": "search user",
                 "description": "search for a specific user name on git"
+            },
+            {
+                "name": "unlink",
+                "description": "unlink your github login from your discord id"
             }
         ]
     },
@@ -70,7 +88,13 @@
     "statsroyale": {
         "author": "iGio90",
         "description": "statsroyale commands",
-        "function": "statsroyale"
+        "function": "statsroyale",
+        "sub_commands": [
+            {
+                "name": "android stats",
+                "description": "android app statistics"
+            }
+        ]
     },
     "status": {
         "author": "iGio90",

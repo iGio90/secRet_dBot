@@ -2,6 +2,12 @@
     "history": {
         "author": "iGio90",
         "description": "commands history",
-        "function": "commands_history"
+        "function": "commands_history",
+        "sub_commands": [
+            {
+                "name": "clear",
+                "description": "clear commands history"
+            }
+        ]
     }
 }
