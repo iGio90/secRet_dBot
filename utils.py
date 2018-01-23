@@ -6,8 +6,8 @@ import math
 
 
 ICON = "https://steemit-production-imageproxy-upload.s3.amazonaws.com/DQmVyhQzqP7TF1SKuDWJkY3HuEGzv3ZpWGzLoJSAk42E81w"
-REPO = "https://github.com/iGio90/secRet_dBot"
-REPO_SHORT = "iGio90/secRet_dBot"
+REPO = "https://github.com/secRetDBot/secRet_dBot"
+REPO_SHORT = "secRetDBot/secRet_dBot"
 
 
 def build_default_embed(title, description, color, icon=True, author=True):

@@ -15,7 +15,7 @@ def calculate_pr_points(git_user_id, git_user_name, message):
                                  git_user_name=git_user_name)
             user_doc.save()
         except Exception as e:
-            pass
+            return -1
 
     points = user_doc.points
     m_c = len(message.server.members)
@@ -382,12 +382,14 @@ async def print_pr_list(message, discord_client, git_repo):
             db_pull_doc = pull_vote.PullVote.objects.get(pull_id=prq.id)
         except pull_vote.DoesNotExist as e:
             req_points = calculate_pr_points(prq.user.id, prq.user.login, message)
-            db_pull_doc = pull_vote.PullVote(pull_id=prq.id,
-                                             user_id=prq.user.id,
-                                             user_name=prq.user.login)
-            db_pull_doc.pull_number = prq.number
-            db_pull_doc.pull_title = prq.title
-            db_pull_doc.required_points = req_points
-            db_pull_doc.save()
-
+            if req_points > 0:
+                db_pull_doc = pull_vote.PullVote(pull_id=prq.id,
+                                                 user_id=prq.user.id,
+                                                 user_name=prq.user.login)
+                db_pull_doc.pull_number = prq.number
+                db_pull_doc.pull_title = prq.title
+                db_pull_doc.required_points = req_points
+                db_pull_doc.save()
+            else:
+                continue
         await print_pr(message, discord_client, prq, db_pull_doc)
