@@ -36,7 +36,7 @@ class SecRetDBot(object):
 
         # github
         self.git_client = Github(self.configs['github_username'], self.configs['github_password'])
-        self.repo = self.git_client.get_repo('iGio90/secRet_dBot')
+        self.repo = self.git_client.get_repo('secRetDBot/secRet_dBot')
 
         # message handler
         self.message_handler = MessageHandler(self.bus, self.discord_client, self.mongo_db,
