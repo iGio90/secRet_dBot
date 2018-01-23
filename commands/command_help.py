@@ -82,7 +82,7 @@ async def help(message, discord_client, cmd_maps):
                         if 'description' in sub:
                             description = sub['description']
                         embed.add_field(name='!' + cmd + ' ' + sub['name'], value=description, inline=False)
-                await discord_client.send_message(message.channel, embed=embed)
+                    await discord_client.send_message(message.channel, embed=embed)
                 break
         if not found:
             embed = utils.simple_embed('error', 'command not found', discord.Color.red())
