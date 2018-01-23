@@ -57,6 +57,11 @@
             }
         ]
     },
+    "qr": {
+        "author": "rEDSAMK",
+        "description": "QR code generator using goqr.me API",
+        "function": "qr_generate"
+    },
     "rules": {
         "author": "iGio90",
         "description": "secRet rules",
