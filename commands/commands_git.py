@@ -151,7 +151,7 @@ async def link_git(message, discord_client, git_client):
                 if r == 'yes' or r == 'y':
 
                     u = user.User(git_user_id=git_user.id,
-                                  git_user_name=git_user.name,
+                                  git_user_name=git_user.login,
                                   discord_id=message.author.id,
                                   discord_name=message.author.display_name,
                                   discord_mention=message.author.mention)
