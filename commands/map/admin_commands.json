@@ -2,7 +2,7 @@
     "cleanup": {
         "author": "iGio90",
         "description": "cleanup the channel.",
-        "function": "cleanup",
+        "function": "cleanup"
     },
     "exec": {
         "author": "iGio90",

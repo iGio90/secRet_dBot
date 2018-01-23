@@ -70,15 +70,15 @@ class MessageHandler(object):
         list the commands from both the maps
         """
         # admin commands
-        embed = utils.build_commands_embed(admin_commands_map, 'admin commands', discord.Color.red())
+        embed = utils.build_commands_embed(self.admin_commands_map, 'admin commands', discord.Color.red())
         await self.discord_client.send_message(message.channel, embed=embed)
 
         # dev commands
-        embed = utils.build_commands_embed(dev_commands_map, 'dev commands', discord.Color.blue())
+        embed = utils.build_commands_embed(self.dev_commands_map, 'dev commands', discord.Color.blue())
         await self.discord_client.send_message(message.channel, embed=embed)
 
         # user commands
-        embed = utils.build_commands_embed(commands_map, 'user commands', discord.Color.light_grey())
+        embed = utils.build_commands_embed(self.commands_map, 'user commands', discord.Color.light_grey())
         await self.discord_client.send_message(message.channel, embed=embed)
 
         # help hint for sub commands
@@ -207,15 +207,15 @@ class MessageHandler(object):
             await self.rules(message)
         elif content == 'devme':
             await self.devme(message)
-        elif base_command[0] in commands_map:
+        elif base_command[0] in self.commands_map:
             # user commands
-            cmd_funct = self._get_command_function(commands_map, base_command)
-        elif base_command[0] in dev_commands_map and utils.is_dev(message.author):
+            cmd_funct = self._get_command_function(self.commands_map, base_command)
+        elif base_command[0] in self.dev_commands_map and utils.is_dev(message.author):
             # dev commands
-            cmd_funct = self._get_command_function(dev_commands_map, base_command)
-        elif base_command[0] in admin_commands_map and utils.is_admin(message.author):
+            cmd_funct = self._get_command_function(self.dev_commands_map, base_command)
+        elif base_command[0] in self.admin_commands_map and utils.is_admin(message.author):
             # admin commands
-            cmd_funct = self._get_command_function(admin_commands_map, base_command)
+            cmd_funct = self._get_command_function(self.admin_commands_map, base_command)
 
         if cmd_funct is not None:
             # store last command function for repeat
