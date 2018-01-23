@@ -150,10 +150,11 @@ async def link_git(message, discord_client, git_client):
                 r = 'yes'
                 if r == 'yes' or r == 'y':
                     u = user.User(git_user_id=git_user.id,
+                                  git_user_name=git_user.login,
                                   discord_id=message.author.id,
                                   discord_name=message.author.display_name,
                                   discord_mention=message.author.mention)
-                    u.git_user_name = git_user.name
+
                     try:
                         u.save()
                         embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
@@ -163,9 +164,10 @@ async def link_git(message, discord_client, git_client):
                     except user.NotUniqueError as e:
                         u = user.User.objects.get(git_user_id=git_user.login)
                         embed = utils.simple_embed('error', '**' + git_user.login + '** already linked with: ' +
-                                                   u.discord_id, discord.Color.red())
+                                                   str(u.discord_id), discord.Color.red())
                         await discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
+                print(e)
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
                 await discord_client.send_message(message.channel, embed=embed)
     except Exception as e:
