@@ -89,6 +89,9 @@ class MessageHandler(object):
                                                                                 "removed " + str(c) + " entries",
                                                                                 discord.Color.dark_green()))
 
+    async def core_update(self, message):
+        self.bus.emit('secret_update', print_no_update=True)
+
     async def devme(self, message):
         s = open('DOCUMENTATION.md', 'r')
         msg = s.read()
