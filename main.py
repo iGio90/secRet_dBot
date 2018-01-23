@@ -83,11 +83,13 @@ class SecRetDBot(object):
         as we are sending it from discord, we can use the bus to send a "!help *function_name"
         with bus
         """
-        message = discord.Message()
+        message = discord.Message(reactions=[])
         message.channel = self.secret_channel
         message.server = self.secret_server
         message.content = command
-        self.main_loop.create_task(self.message_handler.secret_status(None))
+        # kill the author
+        message.author = None
+        self.main_loop.create_task(self.message_handler.on_message(message))
 
     def secret_ping(self):
         """

@@ -209,11 +209,14 @@ class MessageHandler(object):
                 self.last_command['function'] = cmd_funct
                 self.last_command['message'] = message
 
-            # log command issued on mongo
-            cmd_log = command_log.CommandLog(user_name=message.author.name,
-                                             user_id=message.author.id,
-                                             command=content)
-            cmd_log.save()
+            # log command issued on mongo. check if author is there
+            # since we can come from the event bus which build the
+            # msg object in runtime
+            if message.author is not None:
+                cmd_log = command_log.CommandLog(user_name=message.author.name,
+                                                 user_id=message.author.id,
+                                                 command=content)
+                cmd_log.save()
 
             await cmd_funct(message)
 
