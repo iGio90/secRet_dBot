@@ -149,10 +149,16 @@ async def link_git(message, discord_client, git_client):
                 git_user = git_client.legacy_search_users(git_nick_name)[0]
                 r = 'yes'
                 if r == 'yes' or r == 'y':
-                    u = user.User(git_user_id=git_user.id,
-                                  discord_id=message.author.id,
-                                  discord_name=message.author.display_name,
-                                  discord_mention=message.author.mention)
+                    try:
+                        u = user.User.objects.get(discord_id=message.author.id)
+                        u.git_user_id = git_user.id
+                        u.discord_name = message.author.display_name
+                        u.discord_mention = message.author.mention
+                    except user.DoesNotExist as e:
+                        u = user.User(git_user_id=git_user.id,
+                                      discord_id=message.author.id,
+                                      discord_name=message.author.display_name,
+                                      discord_mention=message.author.mention)
                     u.git_user_name = git_user.name
                     try:
                         u.save()
