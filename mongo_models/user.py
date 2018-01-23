@@ -2,7 +2,7 @@ from mongoengine import *
 
 
 class User(Document):
-    discord_id = IntField(unique=True)
+    discord_id = StringField(unique=True)
     discord_name = StringField()
     discord_mention = StringField()
     git_user_id = IntField(required=True, unique=True)

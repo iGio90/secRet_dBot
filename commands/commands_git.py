@@ -149,14 +149,12 @@ async def link_git(message, discord_client, git_client):
                 git_user = git_client.legacy_search_users(git_nick_name)[0]
                 r = 'yes'
                 if r == 'yes' or r == 'y':
-                    u = user.User(git_user_id=git_user.id,
-                                  git_user_name=git_user.name)
 
-                    u.discord_id = int(message.author.id),
-                    if message.author.name is not None:
-                        u.discord_name = message.author.display_name,
-                    if message.author.mention is not None:
-                        u.discord_mention = message.author.mention
+                    u = user.User(git_user_id=git_user.id,
+                                  git_user_name=git_user.name,
+                                  discord_id=message.author.id,
+                                  discord_name=message.author.display_name,
+                                  discord_mention=message.author.mention)
 
                     try:
                         u.save()
@@ -170,6 +168,7 @@ async def link_git(message, discord_client, git_client):
                                                    str(u.discord_id), discord.Color.red())
                         await discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
+                print(e)
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
                 await discord_client.send_message(message.channel, embed=embed)
     except Exception as e:
