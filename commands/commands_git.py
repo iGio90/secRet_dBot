@@ -169,6 +169,11 @@ async def link_git(message, discord_client, git_client):
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
                 await discord_client.send_message(message.channel, embed=embed)
     except Exception as e:
+        desc = 'link your github with **!git link *git_user_name**'
+        await discord_client.send_message(message.channel,
+                                          embed=utils.simple_embed('info', desc, discord.Color.blue()))
+        embed = utils.simple_embed('error', desc, discord.Color.blue())
+        await discord_client.send_message(message.channel, embed=embed)
         pass
 
 
@@ -304,7 +309,7 @@ async def pr(message, discord_client, git_repo):
                     except Exception as e:
                         pass
                     if vote_points < 0:
-                        desc = 'link your github with **!linkgit**'
+                        desc = 'link your github with **!git link**'
                         await discord_client.send_message(message.channel,
                                                           embed=utils.simple_embed('info', desc, discord.Color.blue()))
                     elif message.author.id in db_pull_doc.votes:
