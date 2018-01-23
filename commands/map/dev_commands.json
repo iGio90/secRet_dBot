@@ -1,0 +1,7 @@
+{
+    "history": {
+        "author": "iGio90",
+        "description": "commands history",
+        "function": "commands_history"
+    }
+}

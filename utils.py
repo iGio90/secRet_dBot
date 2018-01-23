@@ -5,18 +5,22 @@ import discord
 import math
 
 
-def build_default_embed(title, description, color, icon=True):
+ICON = "https://steemit-production-imageproxy-upload.s3.amazonaws.com/DQmVyhQzqP7TF1SKuDWJkY3HuEGzv3ZpWGzLoJSAk42E81w"
+
+
+def build_default_embed(title, description, color, icon=True, author=True):
     embed = discord.Embed(title=title, type='rich',
                           description=description,
                           color=color)
     if icon:
-        embed.set_thumbnail(url="http://paulcilwa.com/Content/Science/Science.png")
-    embed.set_author(name="secRet", url="https://secret.re")
+        embed.set_thumbnail(url=ICON)
+    if author:
+        embed.set_author(name="secRet", url="https://secret.re")
     return embed
 
 
 def build_commands_embed(map, title, color):
-    embed = build_default_embed('', '', color, icon=False)
+    embed = build_default_embed('', '', color, icon=False, author=False)
     embed.add_field(name=title, value='-', inline=False)
     for cmd_name, cmd in map.items():
         description = ''

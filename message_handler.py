@@ -1,69 +1,12 @@
 import asyncio
+import json
+
 import discord
 import utils
 
 from commands import command_status, commands_git, commands_statsroyale
 from datetime import datetime, time, timedelta
 from mongo_models import command_log
-
-admin_commands_map = {
-    "cleanup": {
-        "author": "iGio90",
-        "description": "cleanup the channel.",
-        "function": "cleanup"
-    },
-    "exec": {
-        "author": "iGio90",
-        "description": "run shell command",
-        "function": "exec"
-    },
-    "restart": {
-        "author": "iGio90",
-        "description": "restart secRet. flush scripts",
-        "function": "restart"
-    },
-    "status": {
-        "author": "iGio90",
-        "description": "bot services status",
-        "function": "secret_status"
-    },
-    "pr": {
-        "author": "iGio90",
-        "description": "check and vote pull requests",
-        "function": "pr"
-    }
-}
-
-dev_commands_map = {
-    "history": {
-        "author": "iGio90",
-        "description": "commands history",
-        "function": "commands_history"
-    }
-}
-
-commands_map = {
-    "!": {
-        "author": "iGio90",
-        "description": "repeat last command",
-        "function": "repeat"
-    },
-    "help": {
-        "author": "iGio90",
-        "description": "initial help",
-        "function": "help"
-    },
-    "git": {
-        "author": "iGio90",
-        "description": "github commands",
-        "function": "git"
-    },
-    "statsroyale": {
-        "author": "iGio90",
-        "description": "statsroyale commands",
-        "function": "statsroyale"
-    }
-}
 
 
 class MessageHandler(object):
@@ -93,6 +36,14 @@ class MessageHandler(object):
     """
 
     def __init__(self, bus, discord_client, mongo_db, secret_server, secret_channel, git_client, git_repo):
+        # load maps
+        with open('commands/map/admin_commands.json', 'r') as f:
+            self.admin_commands_map = json.load(f)
+        with open('commands/map/dev_commands.json', 'r') as f:
+            self.dev_commands_map = json.load(f)
+        with open('commands/map/user_commands.json', 'r') as f:
+            self.commands_map = json.load(f)
+
         self.last_command = {}
         self.start_time = datetime.now().timestamp()
         self.bus = bus
@@ -128,6 +79,11 @@ class MessageHandler(object):
 
         # user commands
         embed = utils.build_commands_embed(commands_map, 'user commands', discord.Color.light_grey())
+        await self.discord_client.send_message(message.channel, embed=embed)
+
+        # help hint for sub commands
+        embed = utils.build_default_embed('!help *command_name', 'print additional info for a specific command',
+                                          discord.Color.green(), icon=False, author=False)
         await self.discord_client.send_message(message.channel, embed=embed)
 
     async def commands_history(self, message):
@@ -181,7 +137,7 @@ class MessageHandler(object):
                                           " machine with **root** privileges,"
                                           "but meanwhile, I can already do something:\n\n",
                               color=discord.Colour.dark_red())
-        embed.set_thumbnail(url="http://paulcilwa.com/Content/Science/Science.png")
+        embed.set_thumbnail(url=utils.ICON)
         embed.set_author(name="secRet", url="https://secret.re")
         embed.add_field(name="!commands", value="something to interact with me", inline=False)
         embed.add_field(name="!devme", value="info and help about coding features", inline=False)

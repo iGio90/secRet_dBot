@@ -1,0 +1,40 @@
+{
+    "!": {
+        "author": "iGio90",
+        "description": "repeat last command",
+        "function": "repeat"
+    },
+    "help": {
+        "author": "iGio90",
+        "description": "initial help",
+        "function": "help"
+    },
+    "git": {
+        "author": "iGio90",
+        "description": "github commands",
+        "function": "git"
+    },
+    "pr": {
+        "author": "iGio90",
+        "description": "check and vote pull requests",
+        "function": "pr",
+        "sub_commands": [
+            {
+                "name": "check",
+                "description": "check if the pull request has enough vote to be merged and eventually try to merge",
+                "args": [
+                    {
+                        "name": "pull_request_id",
+                        "type": "int",
+                        "required": true
+                    }
+                ]
+            }
+        ]
+    },
+    "statsroyale": {
+        "author": "iGio90",
+        "description": "statsroyale commands",
+        "function": "statsroyale"
+    }
+}

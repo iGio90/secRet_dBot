@@ -3,6 +3,7 @@ import discord
 import json
 import os
 import sys
+import utils
 
 from event_bus import EventBus
 from github import Github
@@ -10,100 +11,116 @@ from message_handler import MessageHandler
 from mongoengine import *
 from secret import SecRet
 
-# read configs
-with open('configs.json', 'r') as f:
-    configs = json.load(f)
 
-# event bus and loop
-main_loop = asyncio.get_event_loop()
-bus = EventBus()
+class SecRetDBot(object):
+    def __init__(self):
+        # read configs
+        with open('configs.json', 'r') as f:
+            self.configs = json.load(f)
 
-# mongo db free4all
-connect('secret')
-mongo_db = Document._get_db()
+        # event bus and loop
+        self.main_loop = asyncio.get_event_loop()
+        self.bus = EventBus()
 
-# discord
-discord_client = discord.Client()
-secret_server = discord.Server(id='326095959173890059')
-secret_channel = discord.Channel(id='404630967257530372',
-                                 server=secret_server)
-welcome_channel = discord.Channel(id='404795628019777557',
-                                  server=secret_server)
+        # mongo db free4all
+        connect('secret')
+        self.mongo_db = Document._get_db()
 
-# github
-git_client = Github(configs['github_username'], configs['github_password'])
-repo = git_client.get_repo('iGio90/secRet_dBot')
+        # discord
+        self.discord_client = discord.Client()
+        self.secret_server = discord.Server(id='326095959173890059')
+        self.secret_channel = discord.Channel(id='404630967257530372',
+                                              server=self.secret_server)
+        self.welcome_channel = discord.Channel(id='404795628019777557',
+                                               server=self.secret_server)
 
-# message handler
-message_handler = MessageHandler(bus, discord_client, mongo_db, secret_server, secret_channel, git_client, repo)
+        # github
+        self.git_client = Github(self.configs['github_username'], self.configs['github_password'])
+        self.repo = self.git_client.get_repo('iGio90/secRet_dBot')
 
-# secret thread for additional periodic stuffs
-secret = SecRet(bus, repo)
-secret.setName('secRet')
-secret.start()
+        # message handler
+        self.message_handler = MessageHandler(self.bus, self.discord_client, self.mongo_db,
+                                              self.secret_server, self.secret_channel,
+                                              self.git_client, self.repo)
+
+        # secret thread for additional periodic stuffs
+        secret = SecRet(self.bus, self.repo)
+        secret.setName('secRet')
+        secret.start()
+
+        # register bus events
+        self.bus.add_event(self.secret_send, 'secret_send')
+        self.bus.add_event(self.secret_restart, 'secret_restart')
+        self.bus.add_event(self.secret_ping, 'secret_ping')
+
+        # register discord events
+        self.discord_client.event(self.on_ready)
+        self.discord_client.event(self.on_member_join)
+        self.discord_client.event(self.on_member_remove)
+        self.discord_client.event(self.on_message)
+
+    async def on_ready(self):
+        print('----------------------------')
+        print('secRet bot connected')
+        print('----------------------------')
+
+    async def on_member_join(self, member):
+        await self.discord_client.send_message(self.welcome_channel, '**[*]** ' + member.mention + ' has joined!')
+
+    async def on_member_remove(self, member):
+        await self.discord_client.send_message(self.welcome_channel, '**[*]** ' + member.mention + ' has left!')
+
+    async def on_message(self, message):
+        await self.message_handler.on_message(message)
+
+    def secret_send(self, message=None):
+        """
+        can be used from other threads :P
+
+        :param: message
+        a string or embed object
+        """
+        self.main_loop.create_task(self._as_secret_send(message))
+
+    def secret_restart(self):
+        """
+        restart the bot with updated code
+        """
+        self.main_loop.create_task(self._restart())
+
+    def secret_ping(self):
+        """
+        hourly ping from secret parallel thread
+        """
+        self.main_loop.create_task(self.message_handler.secret_status(None))
+
+    def start(self):
+        """
+        connect the discord bot
+        """
+        self.discord_client.run(self.configs['discord_token'])
+
+    async def _as_secret_send(self, message):
+        if message:
+            if isinstance(message, str):
+                await self.discord_client.send_message(self.secret_channel, message)
+            elif isinstance(message, discord.Embed):
+                await self.discord_client.send_message(self.secret_channel, embed=message)
+
+    async def _restart(self):
+        print('----------------------------')
+        print('secRet bot is now restarting')
+        print('----------------------------')
+        await self.discord_client.send_message(self.secret_channel,
+                                               embed=utils.simple_embed('restart', 'restarting secRet dBot',
+                                                                        utils.random_color()))
+        os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
 
 
-@bus.on('secret_send')
-def secret_send(message=None):
-    """
-    can be used from other threads :P
-
-    :param: message
-    a string or embed object
-    """
-    main_loop.create_task(_as_secret_send(message))
+def main():
+    sdb = SecRetDBot()
+    sdb.start()
 
 
-@bus.on('secret_restart')
-def secret_restart():
-    """
-    restart the bot with updated code
-    """
-    main_loop.create_task(_restart())
-
-
-@bus.on('secret_ping')
-def secret_ping():
-    """
-    hourly ping from secret parallel thread
-    """
-    main_loop.create_task(message_handler.secret_status(None))
-
-
-@discord_client.event
-async def on_ready():
-    print('----------------')
-    print('secRet bot ready')
-    print('----------------')
-
-
-@discord_client.event
-async def on_member_join(member):
-    await discord_client.send_message(welcome_channel, '**[*]** ' + member.mention + ' has joined!')
-
-
-@discord_client.event
-async def on_member_remove(member):
-    await discord_client.send_message(welcome_channel, '**[*]** ' + member.mention + ' has left!')
-
-
-@discord_client.event
-async def on_message(message):
-    await message_handler.on_message(message)
-
-
-async def _restart():
-    await discord_client.send_message(secret_channel, '**[*]** restarting secRet')
-    os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
-
-
-async def _as_secret_send(message):
-    if message:
-        if isinstance(message, str):
-            await discord_client.send_message(secret_channel, message)
-        elif isinstance(message, discord.Embed):
-            await discord_client.send_message(secret_channel, embed=message)
-
-
-# initialize discord bot
-discord_client.run(configs['discord_token'])
+if __name__ == "__main__":
+    main()

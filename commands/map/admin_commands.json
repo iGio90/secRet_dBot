@@ -1,0 +1,29 @@
+{
+    "cleanup": {
+        "author": "iGio90",
+        "description": "cleanup the channel.",
+        "function": "cleanup",
+    },
+    "exec": {
+        "author": "iGio90",
+        "description": "run shell command on the host machine",
+        "function": "exec",
+        "args": [
+            {
+                "name": "cmd...",
+                "type": "string",
+                "required": true
+            }
+        ]
+    },
+    "restart": {
+        "author": "iGio90",
+        "description": "restart secRet. flush scripts",
+        "function": "restart"
+    },
+    "status": {
+        "author": "iGio90",
+        "description": "bot services status",
+        "function": "secret_status"
+    }
+}
