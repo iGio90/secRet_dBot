@@ -70,8 +70,8 @@ class GPlay(object):
                 if parts[1] == 'search':
                     q = str.join(" ", parts[2:])
                     await self.search(message, discord_client, q)
-                elif parts[2] == 'fetch':
-                    await self.fetch(message, discord_client, parts[3])
+                elif parts[1] == 'fetch':
+                    await self.fetch(message, discord_client, parts[2])
 
     async def search(self, message, discord_client, q):
         results = self.cli.search(q, 3)
