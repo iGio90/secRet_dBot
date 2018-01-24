@@ -1,9 +1,9 @@
 import json
-import urllib
-
 import discord
+import urllib
 import utils
 
+from api import accuweather
 from commands import command_help, command_status, \
     commands_git, commands_statsroyale
 from datetime import datetime
@@ -170,6 +170,9 @@ class MessageHandler(object):
 
     async def statsroyale(self, message):
         await commands_statsroyale.handle(self.discord_client, message)
+
+    async def weather(self, message):
+        accuweather.on_message(message)
 
     async def on_message(self, message):
         """

@@ -105,5 +105,16 @@
         "author": "iGio90",
         "description": "check and apply new updates from the git repo",
         "function": "core_update"
+    },
+    "weather": {
+        "author": "iGio90",
+        "description": "weather provided by accuweather api",
+        "function": "weather",
+        "sub_commands": [
+            {
+                "name": "search",
+                "description": "search for your city and get the weather code"
+            }
+        ]
     }
 }
