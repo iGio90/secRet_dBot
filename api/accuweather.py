@@ -48,15 +48,17 @@ async def on_message(message, discord_client):
             await discord_client.send_message(message.channel, embed=embed)
         else:
             if len(parts) > 2 and parts[1] == 'search':
+                parts = parts[2:]
+                q = str.join(" ", parts)
                 r = requests.get("https://api.accuweather.com/locations/v1/cities/autocomplete.json?apikey="
-                                 + API_KEY + "&language=en&q=" + "milan")
+                                 + API_KEY + "&language=en&q=" + q)
                 j = json.loads(r.content.decode('utf8'))
                 if len(j) == 0:
-                    embed = utils.simple_embed('accuweather', 'no city found for **' + parts[2] + '**',
+                    embed = utils.simple_embed('accuweather', 'no city found for **' + q + '**',
                                                utils.random_color())
                     await discord_client.send_message(message.channel, embed=embed)
                 else:
-                    embed = utils.simple_embed('accuweather', 'results for **' + parts[2] + '**',
+                    embed = utils.simple_embed('accuweather', 'results for **' + q + '**',
                                                utils.random_color())
                     for city in j:
                         embed.add_field(name=city['LocalizedName'], value=city['Key'], inline=True)
