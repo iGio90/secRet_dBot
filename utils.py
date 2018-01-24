@@ -4,7 +4,6 @@ import subprocess
 import discord
 import math
 
-
 ICON = "https://steemit-production-imageproxy-upload.s3.amazonaws.com/DQmVyhQzqP7TF1SKuDWJkY3HuEGzv3ZpWGzLoJSAk42E81w"
 REPO = "https://github.com/secRetDBot/secRet_dBot"
 REPO_SHORT = "secRetDBot/secRet_dBot"
@@ -29,6 +28,10 @@ def build_commands_embed(map, title, color):
             description = cmd['description']
         embed.add_field(name="!" + cmd_name, value=description, inline=False)
     return embed
+
+
+def clamp(x):
+    return max(0, min(x, 255))
 
 
 def convert_size(size_bytes):
@@ -77,6 +80,10 @@ def is_owner(user_id):
 
 def random_color():
     return int('0x{:06x}'.format(random.randint(0, 256 ** 3)), 16)
+
+
+def rgb_to_hex(rgb_tuple):
+    return "#{0:02x}{1:02x}{2:02x}".format(clamp(rgb_tuple[0]), clamp(rgb_tuple[1]), clamp(rgb_tuple[2]))
 
 
 def run_shell_command(command):
