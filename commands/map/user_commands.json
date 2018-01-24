@@ -132,7 +132,7 @@
             }
         ]
     },
-    "wiki": {
+    "wikipedia": {
         "author": "iGio90",
         "description": "wikipedia api",
         "function": "wikipedia",
