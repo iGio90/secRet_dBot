@@ -12,10 +12,11 @@ API_KEY = 'srRLeAmTroxPinDG8Aus3Ikl6tLGJd94'
 async def on_message(message, discord_client):
     parts = message.content.split(" ")
     try:
-        location_code = int(message[1])
+        location_code = int(parts[1])
         r = requests.get("https://api.accuweather.com/currentconditions/v1/" + str(location_code) +
                          "?apikey=" + API_KEY + "&details=true&getphotos=true")
         j = json.loads(r.content.decode('utf8'))
+        print(j)
         if 'code' in j:
             embed = utils.simple_embed('accuweather', 'location id not found. use '
                                                       '!weather search *city_name to get the city code',
