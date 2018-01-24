@@ -1,4 +1,6 @@
 import json
+import random
+
 import discord
 import urllib
 import utils
@@ -57,6 +59,10 @@ class MessageHandler(object):
         self.git_client = git_client
         self.git_repo = git_repo
         self.gplay_handler = gplay.GPlay()
+
+    ##
+    # commands
+    ##
 
     async def commands(self, message):
         """
@@ -149,6 +155,21 @@ class MessageHandler(object):
         """
         self.bus.emit('secret_restart')
 
+    async def roll(self, message):
+        """
+        simple roll accepting max as first arg
+        """
+        parts = message.content.split(" ")
+        max = 100
+        if len(parts) > 1:
+            try:
+                max = int(parts[1])
+            except Exception as e:
+                pass
+
+        embed = utils.simple_embed('roll', '**' + str(random.randint(0, max)) + '**', utils.random_color())
+        await self.discord_client.send_message(message.channel, embed=embed)
+
     async def rules(self, message):
         """
         print rules
@@ -171,6 +192,10 @@ class MessageHandler(object):
 
     async def wikipedia(self, message):
         await wikipedia.on_message(message, self.discord_client, self.bus)
+
+    ##
+    # end commands
+    ##
 
     async def on_message(self, message):
         """
