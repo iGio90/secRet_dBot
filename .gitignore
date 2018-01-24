@@ -1,4 +1,6 @@
 configs.json
+play_configs.conf
 .idea
 __pycache__/
 g_an_key.json
+test.py

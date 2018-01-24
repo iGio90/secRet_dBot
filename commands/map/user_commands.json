@@ -56,6 +56,21 @@
             }
         ]
     },
+    "gplay": {
+        "author": "iGio90",
+        "description": "google play api",
+        "function": "gplay",
+        "sub_commands": [
+            {
+                "name": "search",
+                "description": "search for applications"
+            },
+            {
+                "name": "info",
+                "description": "get details for specific package"
+            }
+        ]
+    },
     "pr": {
         "author": "iGio90",
         "description": "check and vote pull requests",

@@ -3,7 +3,7 @@ import discord
 import urllib
 import utils
 
-from api import accuweather
+from api import accuweather, gplay
 from commands import command_help, command_status, \
     commands_git, commands_statsroyale
 from datetime import datetime
@@ -54,6 +54,7 @@ class MessageHandler(object):
         self.secret_channel = secret_channel
         self.git_client = git_client
         self.git_repo = git_repo
+        self.gplay_handler = gplay.GPlay()
 
     async def cleanup(self, message):
         """
@@ -116,6 +117,9 @@ class MessageHandler(object):
 
     async def git(self, message):
         await commands_git.git(message, self.discord_client, self.git_client, self.git_repo, self.bus)
+
+    async def gplay(self, message):
+        await self.gplay_handler.on_message(message, self.discord_client, self.bus)
 
     async def help(self, message):
         """
