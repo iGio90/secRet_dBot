@@ -15,6 +15,7 @@ class GPlay(object):
         self.cli.token_enable = True
         self.cli.token_url = "https://matlink.fr/token/email/gsfid"
         self.cli.token, self.cli.gsfid = self.cli.retrieve_token()
+        self.cli.connect()
 
     async def fetch(self, message, discord_client, package_name):
         try:
