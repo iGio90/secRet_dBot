@@ -191,6 +191,7 @@ async def merge_pr(message, discord_client, git_repo, db_pull_doc):
 
         status = git_pr.merge()
         if status.merged:
+            db_pull_doc.delete()
             embed = utils.simple_embed('success',
                                        status.sha + ' **merged**. scheduled for next auto-update',
                                        discord.Color.green())
