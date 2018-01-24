@@ -64,12 +64,23 @@ class SecRetDBot(object):
         print('----------------------------')
         print('secRet bot connected')
         print('----------------------------')
+        embed = utils.simple_embed('secRet dBot', 'services initialized',
+                                   utils.random_color())
+        embed.set_author(name='secret', url='http://secret.re', icon_url=utils.ICON)
+        embed.set_thumbnail(utils.ICON)
+        embed.add_field(name="!help", value="initial help")
+        embed.add_field(name="!commands", value="available commands")
+        await self.discord_client.send_message(self.secret_channel, embed=embed)
 
     async def on_member_join(self, member):
-        await self.discord_client.send_message(self.welcome_channel, '**[*]** ' + member.mention + ' has joined!')
+        embed = utils.simple_embed('Welcome', member.mention + ' has join',
+                                   utils.random_color())
+        await self.discord_client.send_message(self.welcome_channel, embed=embed)
 
     async def on_member_remove(self, member):
-        await self.discord_client.send_message(self.welcome_channel, '**[*]** ' + member.mention + ' has left!')
+        embed = utils.simple_embed('Welcome', member.mention + ' has left',
+                                   utils.random_color())
+        await self.discord_client.send_message(self.welcome_channel, embed=embed)
 
     async def on_message(self, message):
         await self.message_handler.on_message(message)
@@ -116,7 +127,11 @@ class SecRetDBot(object):
         """
         connect the discord bot
         """
-        self.discord_client.run(self.configs['discord_token'])
+        try:
+            self.discord_client.run(self.configs['discord_token'])
+        except Exception as e:
+            # just restart it... maybe a timeout from discord!
+            self.start()
 
     async def _as_secret_send(self, message):
         if message:
