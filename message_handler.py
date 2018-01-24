@@ -172,7 +172,7 @@ class MessageHandler(object):
         await commands_statsroyale.handle(self.discord_client, message)
 
     async def weather(self, message):
-        accuweather.on_message(message, self.discord_client)
+        await accuweather.on_message(message, self.discord_client)
 
     async def on_message(self, message):
         """
