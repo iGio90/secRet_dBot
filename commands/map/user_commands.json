@@ -131,5 +131,20 @@
                 "description": "search for your city and get the weather code"
             }
         ]
+    },
+    "wiki": {
+        "author": "iGio90",
+        "description": "wikipedia api",
+        "function": "wikipedia",
+        "sub_commands": [
+            {
+                "name": "search",
+                "description": "search for a wikipedia page"
+            },
+            {
+                "name": "fetch",
+                "description": "fetch a page from wikipedia"
+            }
+        ]
     }
 }
