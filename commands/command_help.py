@@ -3,7 +3,7 @@ import discord
 import utils
 
 
-async def commands(message, discord_client, admin_commands_map, dev_commands_map, commands_map):
+async def commands(message, discord_client, admin_commands_map, dev_commands_map, commands_map, shortcuts_map):
     parts = message.content.split(" ")
     if len(parts) < 2:
         embed = utils.build_default_embed('commands', '** **', discord.Color.gold(), icon=False, author=False)
@@ -13,6 +13,9 @@ async def commands(message, discord_client, admin_commands_map, dev_commands_map
         await discord_client.send_message(message.channel, embed=embed)
     else:
         found = False
+        if parts[1] in shortcuts_map:
+            parts[1] = shortcuts_map[parts[1]]
+            
         if parts[1] == 'admin' or parts[1] == 'admins':
             # admin commands
             found = True
@@ -35,7 +38,7 @@ async def commands(message, discord_client, admin_commands_map, dev_commands_map
             await discord_client.send_message(message.channel, embed=embed)
 
 
-async def help(message, discord_client, cmd_maps):
+async def help(message, discord_client, cmd_maps, shortcuts_map):
     """
     :param message:
     discord message
@@ -62,6 +65,10 @@ async def help(message, discord_client, cmd_maps):
     else:
         cmd = parts[1]
         found = False
+
+        if cmd in shortcuts_map:
+            cmd = shortcuts_map[cmd]
+
         for map in cmd_maps:
             if cmd in map:
                 found = True

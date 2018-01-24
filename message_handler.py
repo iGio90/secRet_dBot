@@ -29,7 +29,7 @@ class MessageHandler(object):
     :param: secret_server
     instance of discord server object holding server id
     :param: secret_channel
-    instance of discord channel object holdin #secRet id
+    instance of discord channel object holding #secRet id
     :param: git_client
     instance of git client
     :param: git_repo
@@ -44,6 +44,8 @@ class MessageHandler(object):
             self.dev_commands_map = json.load(f)
         with open('commands/map/user_commands.json', 'r') as f:
             self.commands_map = json.load(f)
+        with open('commands/map/shortcuts.json', 'r') as f:
+            self.shortcuts_map = json.load(f)
 
         self.last_command = {}
         self.start_time = datetime.now().timestamp()
@@ -56,23 +58,12 @@ class MessageHandler(object):
         self.git_repo = git_repo
         self.gplay_handler = gplay.GPlay()
 
-    async def cleanup(self, message):
-        """
-        clean the whole channel. delete all messages
-        """
-        c = len(await self.discord_client.purge_from(message.channel, limit=100000))
-        await self.discord_client.send_message(
-            message.channel,
-            embed=utils.simple_embed('done',
-                                     str(c) + " message deleted",
-                                     discord.Color.dark_green()))
-
     async def commands(self, message):
         """
         list the commands
         """
         await command_help.commands(message, self.discord_client, self.admin_commands_map,
-                                    self.dev_commands_map, self.commands_map)
+                                    self.dev_commands_map, self.commands_map, self.shortcuts_map)
 
     async def commands_history(self, message):
         cmd_list = message.content.split(" ")
@@ -127,7 +118,7 @@ class MessageHandler(object):
         """
         await command_help.help(message, self.discord_client, [
             self.admin_commands_map, self.dev_commands_map, self.commands_map
-        ])
+        ], self.shortcuts_map)
 
     async def pr(self, message):
         await commands_git.pr(message, self.discord_client, self.git_repo)
@@ -205,6 +196,10 @@ class MessageHandler(object):
 
         # the function to call
         cmd_funct = None
+
+        # check if it's a shortcut
+        if base_command[0] in self.shortcuts_map:
+            base_command[0] = self.shortcuts_map[base_command[0]]
 
         if base_command[0] in self.commands_map:
             # user commands

@@ -1,9 +1,4 @@
 {
-    "cleanup": {
-        "author": "iGio90",
-        "description": "cleanup the channel.",
-        "function": "cleanup"
-    },
     "exec": {
         "author": "iGio90",
         "description": "run shell command on the host machine",

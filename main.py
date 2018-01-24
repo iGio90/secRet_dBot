@@ -67,7 +67,7 @@ class SecRetDBot(object):
         embed = utils.simple_embed('secRet dBot', 'services initialized',
                                    utils.random_color())
         embed.set_author(name='secret', url='http://secret.re', icon_url=utils.ICON)
-        embed.set_thumbnail(utils.ICON)
+        embed.set_thumbnail(url=utils.ICON)
         embed.add_field(name="!help", value="initial help")
         embed.add_field(name="!commands", value="available commands")
         await self.discord_client.send_message(self.secret_channel, embed=embed)
