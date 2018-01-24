@@ -83,7 +83,7 @@ def random_color():
 
 
 def rgb_to_hex(rgb_tuple):
-    return "#{0:02x}{1:02x}{2:02x}".format(clamp(rgb_tuple[0]), clamp(rgb_tuple[1]), clamp(rgb_tuple[2]))
+    return "{0:02x}{1:02x}{2:02x}".format(clamp(rgb_tuple[0]), clamp(rgb_tuple[1]), clamp(rgb_tuple[2]))
 
 
 def run_shell_command(command):

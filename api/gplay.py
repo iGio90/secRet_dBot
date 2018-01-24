@@ -19,7 +19,7 @@ class GPlay(object):
 
     async def fetch(self, message, discord_client, package_name):
         try:
-            store_info = self.cli.api.details('com.whatsapp')
+            store_info = self.cli.api.details(package_name)
 
             icon = None
             color = utils.random_color()
@@ -37,16 +37,17 @@ class GPlay(object):
                         f.write(response.content)
                     color_thief = ColorThief("files/tmp_gplay_icon.png")
                     dominant_color = color_thief.get_color(quality=1)
-                    color = utils.rgb_to_hex(dominant_color)
+                    color = int(utils.rgb_to_hex(dominant_color), 16)
 
-            embed = utils.simple_embed(store_info['title'], store_info['docId'],
-                                       color)
+            embed = utils.simple_embed(store_info['title'], store_info['docId'], color)
+            if icon:
+                embed.set_thumbnail(url=icon)
             embed.add_field(name='author', value=store_info['author'])
+            embed.add_field(name='version code', value=str(store_info['versionCode']))
             embed.add_field(name='uploaded', value=store_info['uploadDate'])
-            embed.add_field(name='downloads', value=store_info['numDownloads'])
+            embed.add_field(name='downloads', value=store_info['numDownloads'].replace('downloads', ''))
             embed.add_field(name='rating', value=str(store_info['aggregateRating']['starRating']))
             embed.add_field(name='comments', value=str(store_info['aggregateRating']['commentCount']))
-            embed.add_field(name='downloads', value=store_info['numDownloads'])
             embed.add_field(name='type', value=store_info['category']['appType'])
             embed.add_field(name='category', value=store_info['category']['appCategory'])
             await discord_client.send_message(message.channel, embed=embed)
