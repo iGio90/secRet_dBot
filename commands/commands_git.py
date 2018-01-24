@@ -382,7 +382,7 @@ async def print_pr(message, discord_client, prq, db_pull_doc):
     embed.add_field(name='comments', value=str(prq.comments))
 
     embed.add_field(name='points', value=str(db_pull_doc.points))
-    embed.add_field(name='required_points', value=str(db_pull_doc.required_points))
+    embed.add_field(name='required points', value=str(db_pull_doc.required_points))
 
     await discord_client.send_message(message.channel, embed=embed)
 

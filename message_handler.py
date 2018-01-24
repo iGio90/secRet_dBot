@@ -3,7 +3,7 @@ import discord
 import urllib
 import utils
 
-from api import accuweather, gplay
+from api import accuweather, gplay, wikipedia
 from commands import command_help, command_status, \
     commands_git, commands_statsroyale
 from datetime import datetime
@@ -177,6 +177,9 @@ class MessageHandler(object):
 
     async def weather(self, message):
         await accuweather.on_message(message, self.discord_client)
+
+    async def wikipedia(self, message):
+        await wikipedia.on_message(message, self.discord_client, self.bus)
 
     async def on_message(self, message):
         """
