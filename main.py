@@ -76,7 +76,7 @@ class SecRetDBot(object):
         hourly ping from secret parallel thread
         """
         self.secret_context.main_loop.create_task(
-            self.secret_context.message_handler.secret_status(None))
+            self.secret_context.message_handler.status(None))
 
     def secret_restart(self):
         """
