@@ -201,8 +201,8 @@ class MessageHandler(object):
         await command_status.secret_status(message, self.discord_client, self.git_client,
                                            self.mongo_db, self.start_time, self.secret_channel)
 
-    async def test_command(self, message):
-        await self.cmd_tester.on_message(message)
+    async def test_command(self, message, lang):
+        await self.cmd_tester.on_message(message, lang)
 
     async def weather(self, message):
         await accuweather.on_message(message, self.discord_client)
@@ -232,7 +232,7 @@ class MessageHandler(object):
             parts = content.split('\n')
             lang = parts[0].replace("```", '')
             if lang in self.cmd_tester.supported_languages:
-                await self.test_command(message)
+                await self.test_command(message, lang)
             return
 
         # we also want to skip anything that doesn't start with the prefix
