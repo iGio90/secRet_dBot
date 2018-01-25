@@ -67,3 +67,10 @@ async def on_message(message, discord_client, bus):
                                            discord.Color.red())
                 embed.set_thumbnail(url=WIKI_ICON)
                 await discord_client.send_message(message.channel, embed=embed)
+            except wikipedia.DisambiguationError as e:
+                embed = utils.simple_embed('wikipedia', 'no results for: **' + q + '**. Use !wiki search *keywords and '
+                                                                                   'provide a working page to fetch.',
+                                           discord.Color.red())
+                embed.set_thumbnail(url=WIKI_ICON)
+                await discord_client.send_message(message.channel, embed=embed)
+
