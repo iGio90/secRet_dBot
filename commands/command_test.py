@@ -1,3 +1,4 @@
+import discord
 import requests
 import utils
 
@@ -11,18 +12,18 @@ class TestCMD(object):
         self.git_repo = git_repo
 
     async def on_message(self, message):
-        parts = message.content.split(" ")
-        if len(parts) > 1:
-            cmd = None
-            sub = str(parts[1])
-            if sub.startswith('http'):
-                file_url = parts[1]
-                r = requests.get(file_url)
+        try:
+            cmd = message.content
+            if cmd.startswith('http'):
+                r = requests.get(cmd)
                 if r.status_code == 200:
                     cmd = r.content.decode('utf8')
-            elif sub.startswith("```"):
-                cmd = str.join(' ', parts[2:])
+            elif cmd.startswith("```python"):
+                cmd = cmd.replace('```python', '')
                 cmd = cmd.replace('```', '')
             if cmd is not None:
                 print(cmd)
                 exec(cmd)
+        except Exception as e:
+            embed = utils.simple_embed('error', e, discord.Color.red())
+            await self.discord_client.send_message(message.channel, embed=embed)
