@@ -72,6 +72,9 @@ class MessageHandler(object):
         self.git_repo = git_repo
         # google play api
         self.gplay_handler = gplay.GPlay()
+        # arbitrary py execution for command testing
+        self.cmd_tester = command_test.TestCMD(self.discord_client, self.mongo_db,
+                                               self.bus, self.git_client, self.git_repo)
 
     ##
     # commands
@@ -198,8 +201,7 @@ class MessageHandler(object):
                                            self.mongo_db, self.start_time, self.secret_channel)
 
     async def test_command(self, message):
-        await command_test.on_message(message, self.discord_client, self.mongo_db,
-                                      self.bus, self.git_client, self.git_repo)
+        await self.cmd_tester.on_message(message)
 
     async def weather(self, message):
         await accuweather.on_message(message, self.discord_client)
