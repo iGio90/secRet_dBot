@@ -167,8 +167,21 @@ class MessageHandler(object):
         embed.add_field(name="Rules of the house", value=msg, inline=False)
         await self.secret_context.discord_client.send_message(message.channel, embed=embed)
 
-    async def secret_status(self, message):
-        await command_status.secret_status(self.secret_context)
+    async def status(self, message):
+        if message:
+            parts = message.content.split(" ")
+            if len(parts) < 2:
+                # print the help
+                self.secret_context.bus.emit('secret_command', command='!help status')
+            else:
+                if parts[1] == 'bot':
+                    await command_status.bot_status(self.secret_context)
+                elif parts[1] == 'git':
+                    await command_status.git_status(self.secret_context)
+                elif parts[1] == 'mongo':
+                    await command_status.mongo_status(self.secret_context)
+        else:
+            await command_status.bot_status(self.secret_context)
 
     async def test_command(self, message, lang):
         await self.cmd_tester.on_message(message, lang)
