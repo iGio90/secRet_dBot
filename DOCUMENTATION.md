@@ -13,9 +13,9 @@ This mean, that we have them inside but not exposed. References could be created
 ---
 
 ### Add commands and features
-1) add your command to the commands map ``commands/map/user_commands.json``
-2) eventually, add a shortcut for it ``commands/map/shortcuts.json``
-3) code the root handler in ``message_handler.py``
+1) add your command to the commands map ``discord_commands/map/user_commands.json``
+2) eventually, add a shortcut for it ``discord_commands/map/shortcuts.json``
+3) code the root handler in ``secret/message_handler.py``
 
 ```python
 async def roll(self, message):
@@ -42,8 +42,8 @@ A simple function like that could be coded straight inside the message_handler.
 3) function list is alphabetically ordered for a better read. keep this.
 4) object ``message`` is **mandatory argument** to any function in the map and provide discord api (server, channel, members etc.)
 
-If you like to code advanced and more complex stuffs, you can add your classes to ``commands/`` package.
-A little example from ``message_handler.py``:
+If you like to code advanced and more complex stuffs, you can add your classes to ``discord_commands/`` package.
+A little example from ``secret/message_handler.py``:
 
 ```python
 async def wikipedia(self, message):
@@ -52,34 +52,38 @@ async def wikipedia(self, message):
 
 ---
 
-### Give your classes something to use from the message handler
+### Give your classes something to use from the secret context
 
 I think there is no need of so much description if you are arrived here.
+The ``secret_context`` is/can be shared to any additional module and hold a reference
+of anything that can be used
 
 ```python
-# hold the last command used
-self.last_command = {}
-# ctor time
-self.start_time = datetime.now().timestamp()
-# event bus.
-# we have some handlers all around.
-# feel free to register and use it to spread stuffs from different threads
-self.bus = bus
-# the discord client providing api with our discord server
-self.discord_client = discord_client
-# a mongo db.
-# checkout mongo_models for some example of usage case
-self.mongo_db = mongo_db
-# hold a reference of both channel and server.
-# sometime we just do stuffs on other threads and we want to send a message
-self.secret_server = secret_server
-self.secret_channel = secret_channel
-# a git client linked with the bot github profile
-self.git_client = git_client
-# the main repo of the bot
-self.git_repo = git_repo
-# google play api
-self.gplay_handler = gplay.GPlay()
+# event bus and loop
+self.main_loop = asyncio.get_event_loop()
+self.bus = EventBus()
+
+# mongo db free4all
+connect('secret')
+self.mongo_db = Document._get_db()
+
+# discord
+self.discord_client = discord.Client()
+self.secret_server = discord.Server(id='326095959173890059')
+self.secret_channel = discord.Channel(id='404630967257530372',
+                                      server=self.secret_server)
+self.welcome_channel = discord.Channel(id='404795628019777557',
+                                       server=self.secret_server)
+
+# github
+self.git_client = Github(configs['github_username'], configs['github_password'])
+self.git_repo = self.git_client.get_repo('secRetDBot/secRet_dBot')
+
+# discord message handler
+self.message_handler = MessageHandler(self)
+
+# handlers
+self.handler_status = status.Status(self.mongo_db, self.git_client)
 ```
 
 the things listed can be used to build your classes and stuffs.

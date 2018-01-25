@@ -1,15 +1,13 @@
 from datetime import datetime
 
-import discord
 import json
 import requests
-import utils
-
+from secret import utils
 
 API_KEY = 'srRLeAmTroxPinDG8Aus3Ikl6tLGJd94'
 
 
-async def on_message(message, discord_client):
+async def on_message(message, secret_context):
     parts = message.content.split(" ")
     try:
         location_code = int(parts[1])
@@ -20,7 +18,7 @@ async def on_message(message, discord_client):
             embed = utils.simple_embed('accuweather', 'location id not found. use '
                                                       '!weather search *city_name to get the city code',
                                        utils.random_color())
-            await discord_client.send_message(message.channel, embed=embed)
+            await secret_context.discord_client.send_message(message.channel, embed=embed)
         else:
             obj = j[0]
             embed = utils.simple_embed('accuweather', 'weather conditions for: **' + parts[1] + '**',
@@ -41,12 +39,12 @@ async def on_message(message, discord_client):
                                                      obj['Wind']['Direction']['English'])
             embed.add_field(name='wind speed', value=str(obj['Wind']['Speed']['Metric']['Value']) + ' km/h')
             embed.set_thumbnail(url=obj['Photos'][0]['PortraitLink'])
-            await discord_client.send_message(message.channel, embed=embed)
+            await secret_context.discord_client.send_message(message.channel, embed=embed)
     except Exception as e:
         if len(parts) < 1:
             embed = utils.simple_embed('accuweather', 'use !weather search *city_name to get the city code',
                                        utils.random_color())
-            await discord_client.send_message(message.channel, embed=embed)
+            await secret_context.discord_client.send_message(message.channel, embed=embed)
         else:
             if len(parts) > 2 and parts[1] == 'search':
                 parts = parts[2:]
@@ -57,17 +55,17 @@ async def on_message(message, discord_client):
                 if len(j) == 0:
                     embed = utils.simple_embed('accuweather', 'no city found for **' + q + '**',
                                                utils.random_color())
-                    await discord_client.send_message(message.channel, embed=embed)
+                    await secret_context.discord_client.send_message(message.channel, embed=embed)
                 else:
                     embed = utils.simple_embed('accuweather', 'results for **' + q + '**',
                                                utils.random_color())
                     for city in j:
                         embed.add_field(name=city['LocalizedName'], value=city['Key'], inline=True)
-                    await discord_client.send_message(message.channel, embed=embed)
+                    await secret_context.discord_client.send_message(message.channel, embed=embed)
             else:
                 embed = utils.simple_embed('accuweather', 'use !weather search *city_name to get the city code',
                                            utils.random_color())
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
 
 
 

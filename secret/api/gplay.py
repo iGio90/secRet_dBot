@@ -1,7 +1,7 @@
 import discord
 import os
 import requests
-import utils
+from secret import utils
 
 from colorthief import ColorThief
 from gplaycli import gplaycli
@@ -62,7 +62,7 @@ class GPlay(object):
             embed.set_thumbnail(url=self.play_icon_url)
             await discord_client.send_message(message.channel, embed=embed)
 
-    async def on_message(self, message, discord_client, bus):
+    async def on_message(self, message, secret_context):
         parts = message.content.split(" ")
         if len(parts) < 2:
             # print the help
@@ -71,9 +71,9 @@ class GPlay(object):
             if len(parts) > 2:
                 if parts[1] == 'search':
                     q = str.join(" ", parts[2:])
-                    await self.search(message, discord_client, q)
+                    await self.search(message, secret_context.discord_client, q)
                 elif parts[1] == 'fetch':
-                    await self.fetch(message, discord_client, parts[2])
+                    await self.fetch(message, secret_context.discord_client, parts[2])
 
     async def search(self, message, discord_client, q):
         results = self.cli.search(q, 3)
