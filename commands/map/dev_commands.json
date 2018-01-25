@@ -9,10 +9,5 @@
                 "description": "clear commands history"
             }
         ]
-    },
-    "test": {
-        "author": "iGio90",
-        "description": "test new commands",
-        "function": "test_command"
     }
 }
