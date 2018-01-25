@@ -72,6 +72,7 @@ class MessageHandler(object):
         self.git_repo = git_repo
         # google play api
         self.gplay_handler = gplay.GPlay()
+
         # arbitrary py execution for command testing
         self.cmd_tester = command_test.TestCMD(self.discord_client, self.mongo_db,
                                                self.bus, self.git_client, self.git_repo)
@@ -226,9 +227,12 @@ class MessageHandler(object):
         content = message.content
 
         # command test
-        if content.startswith("```python") and (utils.is_dev(message.author)
-                                                   or utils.is_admin(message.author)):
-            await self.test_command(message)
+        if content.startswith("```") and \
+                (utils.is_dev(message.author) or utils.is_admin(message.author)):
+            parts = content.split('\n')
+            lang = parts[0].replace("```", '')
+            if lang in self.cmd_tester.supported_languages:
+                await self.test_command(message)
             return
 
         # we also want to skip anything that doesn't start with the prefix
