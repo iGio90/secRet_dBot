@@ -154,26 +154,41 @@ async def link_git(message, discord_client, git_client):
             await discord_client.send_message(message.channel, embed=embed)
         except user.DoesNotExist:
             try:
-                git_user = git_client.legacy_search_users(git_nick_name)[0]
-                r = 'yes'
-                if r == 'yes' or r == 'y':
-                    u = user.User(git_user_id=git_user.id,
-                                  git_user_name=git_user.login,
-                                  discord_id=message.author.id,
-                                  discord_name=message.author.display_name,
-                                  discord_mention=message.author.mention)
-
-                    try:
+                try:
+                    u = user.User.objects.get(git_user_name=git_nick_name)
+                    if u.discord_id:
+                        embed = utils.simple_embed('error', '**' + git_nick_name + '** already linked with: ' +
+                                                   str(u.discord_id), discord.Color.red())
+                        await discord_client.send_message(message.channel, embed=embed)
+                    else:
+                        u.discord_id = message.author.id
+                        u.discord_name = message.author.display_name
+                        u.discord_mention = message.author.mention
                         u.save()
                         embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
                                                    message.author.id,
                                                    discord.Color.green())
                         await discord_client.send_message(message.channel, embed=embed)
-                    except user.NotUniqueError as e:
-                        u = user.User.objects.get(git_user_id=git_user.login)
-                        embed = utils.simple_embed('error', '**' + git_user.login + '** already linked with: ' +
-                                                   str(u.discord_id), discord.Color.red())
-                        await discord_client.send_message(message.channel, embed=embed)
+                except user.DoesNotExist:
+                    git_user = git_client.legacy_search_users(git_nick_name)[0]
+                    r = 'yes'
+                    if r == 'yes' or r == 'y':
+                        u = user.User(git_user_id=git_user.id,
+                                      git_user_name=git_user.login,
+                                      discord_id=message.author.id,
+                                      discord_name=message.author.display_name,
+                                      discord_mention=message.author.mention)
+                        try:
+                            u.save()
+                            embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
+                                                       message.author.id,
+                                                       discord.Color.green())
+                            await discord_client.send_message(message.channel, embed=embed)
+                        except user.NotUniqueError as e:
+                            u = user.User.objects.get(git_user_id=git_user.login)
+                            embed = utils.simple_embed('error', '**' + git_user.login + '** already linked with: ' +
+                                                       str(u.discord_id), discord.Color.red())
+                            await discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
                 await discord_client.send_message(message.channel, embed=embed)
