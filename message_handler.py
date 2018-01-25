@@ -7,7 +7,7 @@ import utils
 
 from api import accuweather, gplay, wikipedia
 from commands import command_help, command_status, \
-    commands_git, commands_statsroyale, command_test
+    commands_git, command_test
 from datetime import datetime
 from mongo_models import command_log
 
@@ -196,9 +196,6 @@ class MessageHandler(object):
     async def secret_status(self, message):
         await command_status.secret_status(message, self.discord_client, self.git_client,
                                            self.mongo_db, self.start_time, self.secret_channel)
-
-    async def statsroyale(self, message):
-        await commands_statsroyale.handle(self.discord_client, message)
 
     async def test_command(self, message):
         await command_test.on_message(message, self.discord_client, self.mongo_db,

@@ -3,7 +3,7 @@ import requests
 
 async def on_message(message, discord_client, mongo_db, bus, git_client, git_repo):
     parts = message.content.split(" ")
-    if len(parts) > 2:
+    if len(parts) > 1:
         file_url = parts[1]
         r = requests.get(file_url)
         if r.status_code == 200:
