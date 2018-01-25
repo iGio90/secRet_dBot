@@ -2,7 +2,10 @@
 # https://github.com/Damnever/pigar
 
 # api/gplay.py: 7
-GPlayCli == 3.17
+GPlayCli == 3.10
+
+# commands/command_test.py: 2
+PyExecJS == 1.5.1
 
 # main.py: 9
 PyGithub == 1.35
@@ -16,6 +19,7 @@ colorthief == 0.2.1
 # api/wikipedia.py: 1
 # commands/command_help.py: 1
 # commands/command_status.py: 1
+# commands/command_test.py: 1
 # commands/commands_git.py: 1
 # main.py: 2
 # message_handler.py: 4
@@ -36,8 +40,9 @@ mongoengine == 0.15.0
 # api/accuweather.py: 5
 # api/gplay.py: 3
 # api/wikipedia.py: 3
-# commands/command_test.py: 1
-requests == 2.18.4
+# commands/command_test.py: 3
+# test.py: 1
+requests == 2.18.1
 
 # api/wikipedia.py: 5
 wikipedia == 1.4.0

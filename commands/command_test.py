@@ -1,4 +1,5 @@
 import discord
+import execjs
 import requests
 import utils
 
@@ -11,19 +12,18 @@ class TestCMD(object):
         self.git_client = git_client
         self.git_repo = git_repo
 
-    async def on_message(self, message):
+        self.supported_languages = ['python', 'javascript']
+
+    async def on_message(self, message, lang):
         try:
             cmd = message.content
-            if cmd.startswith('http'):
-                r = requests.get(cmd)
-                if r.status_code == 200:
-                    cmd = r.content.decode('utf8')
-            elif cmd.startswith("```python"):
+            if lang == 'python':
                 cmd = cmd.replace('```python', '')
                 cmd = cmd.replace('```', '')
-            if cmd is not None:
-                await self.discord_client.delete_message(message)
                 exec(cmd)
+            elif lang == 'javascript':
+                execjs.eval(cmd)
+            # await self.discord_client.delete_message(message)
         except Exception as e:
             embed = utils.simple_embed('error', e, discord.Color.red())
             await self.discord_client.send_message(message.channel, embed=embed)
