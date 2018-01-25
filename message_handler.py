@@ -49,15 +49,28 @@ class MessageHandler(object):
         with open('commands/map/shortcuts.json', 'r') as f:
             self.shortcuts_map = json.load(f)
 
+        # hold the last command used
         self.last_command = {}
+        # ctor time
         self.start_time = datetime.now().timestamp()
+        # event bus.
+        # we have some handlers all around.
+        # feel free to register and use it to spread stuffs from different threads
         self.bus = bus
+        # the discord client providing api with our discord server
         self.discord_client = discord_client
+        # a mongo db.
+        # checkout mongo_models for some example of usage case
         self.mongo_db = mongo_db
+        # hold a reference of both channel and server.
+        # sometime we just do stuffs on other threads and we want to send a message
         self.secret_server = secret_server
         self.secret_channel = secret_channel
+        # a git client linked with the bot github profile
         self.git_client = git_client
+        # the main repo of the bot
         self.git_repo = git_repo
+        # google play api
         self.gplay_handler = gplay.GPlay()
 
     ##
