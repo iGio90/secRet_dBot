@@ -56,8 +56,7 @@ class SecRet(Thread):
             # use pipe and shell.. feel free to code a better way
             os.system("git fetch origin master")
             os.system("git reset --h FETCH_HEAD")
-            # it does actually throw segmentation fault O.O
-            # os.system("pip3 install -r requirements.txt")
+            os.system("pip3 install -r requirements.txt")
             self.bus.emit('secret_restart')
         elif print_no_update:
             embed = discord.Embed(title='core update', type='rich',

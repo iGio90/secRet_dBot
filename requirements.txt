@@ -2,7 +2,7 @@
 # https://github.com/Damnever/pigar
 
 # api/gplay.py: 7
-GPlayCli == 3.10
+GPlayCli == 3.17
 
 # commands/command_test.py: 2
 PyExecJS == 1.5.1

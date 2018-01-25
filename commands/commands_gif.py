@@ -11,7 +11,7 @@ async def on_message(message, discord_client, bus):
     parts = message.content.split(" ")
     if len(parts) < 2:
         # print the help
-        bus.emit('secret_command', command='!help wiki')
+        bus.emit('secret_command', command='!help gif')
     else:
         if parts[1] == 'random':
             r = requests.get('http://api.giphy.com/v1/gifs/random?api_key=' + API_KEY)
