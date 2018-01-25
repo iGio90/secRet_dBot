@@ -1,4 +1,6 @@
 import json
+import random
+
 import discord
 import urllib
 import utils
@@ -47,16 +49,33 @@ class MessageHandler(object):
         with open('commands/map/shortcuts.json', 'r') as f:
             self.shortcuts_map = json.load(f)
 
+        # hold the last command used
         self.last_command = {}
+        # ctor time
         self.start_time = datetime.now().timestamp()
+        # event bus.
+        # we have some handlers all around.
+        # feel free to register and use it to spread stuffs from different threads
         self.bus = bus
+        # the discord client providing api with our discord server
         self.discord_client = discord_client
+        # a mongo db.
+        # checkout mongo_models for some example of usage case
         self.mongo_db = mongo_db
+        # hold a reference of both channel and server.
+        # sometime we just do stuffs on other threads and we want to send a message
         self.secret_server = secret_server
         self.secret_channel = secret_channel
+        # a git client linked with the bot github profile
         self.git_client = git_client
+        # the main repo of the bot
         self.git_repo = git_repo
+        # google play api
         self.gplay_handler = gplay.GPlay()
+
+    ##
+    # commands
+    ##
 
     async def commands(self, message):
         """
@@ -149,6 +168,21 @@ class MessageHandler(object):
         """
         self.bus.emit('secret_restart')
 
+    async def roll(self, message):
+        """
+        simple roll accepting max as first arg
+        """
+        parts = message.content.split(" ")
+        max = 100
+        if len(parts) > 1:
+            try:
+                max = int(parts[1])
+            except Exception as e:
+                pass
+
+        embed = utils.simple_embed('roll', '**' + str(random.randint(0, max)) + '**', utils.random_color())
+        await self.discord_client.send_message(message.channel, embed=embed)
+
     async def rules(self, message):
         """
         print rules
@@ -171,6 +205,10 @@ class MessageHandler(object):
 
     async def wikipedia(self, message):
         await wikipedia.on_message(message, self.discord_client, self.bus)
+
+    ##
+    # end commands
+    ##
 
     async def on_message(self, message):
         """

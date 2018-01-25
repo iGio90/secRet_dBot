@@ -95,6 +95,11 @@
         "description": "QR code generator using goqr.me API",
         "function": "qr_generate"
     },
+    "roll": {
+        "author": "iGio90",
+        "description": "roll the dice",
+        "function": "roll"
+    },
     "rules": {
         "author": "iGio90",
         "description": "secRet rules",

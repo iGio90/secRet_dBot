@@ -1,55 +1,85 @@
-## Documentation
+# Documentation
 
-Adding command and features is very easy. The file you need to check to start with is message_handler.
-The commands map are pretty easy to understand and will let you add your commands handlers.
-The main function invoked by yours handler MUST be coded inside the message handler.
-If your functions is very short and take a couple of lines, it's good to code it straight on message_handler, otherwise I suggest to create and import your own files and follow your flows there.
-A little example:
-```
-"commits": {
-        "author": "iGio90",
-        "description": "last 10 commits on secRet repo",
-        "function": "commits"
-    }
-```
-Note: function must be ``async``. message object hold everything
-(sender, reactions, server - find more in the discord api link below, it's very easy to use)
-```
-async def commits(self, message):
+### Something running that you can access for code your stuffs:
+* discord (http://discordpy.readthedocs.io/en/latest/api.html)
+* github (http://pygithub.readthedocs.io/en/latest/github.html)
+* mongo db (http://docs.mongoengine.org/apireference.html)
+* http server and rest api (WIP)
+
+A lot of things are just not exposed by design (I.E wikipedia api, weather).
+This mean, that we have them inside but not exposed. References could be created as needed!
+
+
+---
+
+### Add commands and features
+1) add your command to the commands map ``commands/map/user_commands.json``
+2) eventually, add a shortcut for it ``commands/map/shortcuts.json``
+3) code the root handler in ``message_handler.py``
+
+```python
+async def roll(self, message):
     """
-    list last 10 commits in the repo
+    simple roll accepting max as first arg
     """
-    commits_embed = commands_git.build_commit_list_embed(self.git_repo)
-    await self.client.send_message(message.channel, embed=commits_embed)
+    parts = message.content.split(" ")
+    max = 100
+    if len(parts) > 1:
+        try:
+            max = int(parts[1])
+        except Exception as e:
+            pass
+
+    embed = utils.simple_embed('roll', '**' + str(random.randint(0, max)) + '**', utils.random_color())
+    await self.discord_client.send_message(message.channel, embed=embed)
 ```
 
-Discord bot documentation:
-http://discordpy.readthedocs.io/en/latest/api.html#
+A simple function like that could be coded straight inside the message_handler.
 
-## Additional
-The bot runs an hourly task on a separate thread which can be used to do additional stuffs.
-secret.py does the job and you can add an eventual hourly task here as well:
-```
-def secret_hourly_task(self):
-    # add your stuffs
-```
+**Things to follow:**
+1) function must be preceded by ``async`` to use asyncio
+2) the api to send a message through discord must be sent using asyncio as well: ``await self.discord_client.send_message``
+3) function list is alphabetically ordered for a better read. keep this.
+4) object ``message`` is **mandatory argument** to any function in the map and provide discord api (server, channel, members etc.)
 
-To send messages from this thread we must use an event bus instead.
+If you like to code advanced and more complex stuffs, you can add your classes to ``commands/`` package.
+A little example from ``message_handler.py``:
 
-Send message from the main thread
-```
-await self.client.send_message(message.channel, embed=commits_embed)
+```python
+async def wikipedia(self, message):
+    await wikipedia.on_message(message, self.discord_client, self.bus)
 ```
 
-Send a message from secret thread (event bus):
-```
-def ding(self):
-    now = datetime.now()
-    s = ''
-    for i in range(0, now.hour):
-        s += 'DING '
-    self.bus.emit('secret_send', message=s)
+---
+
+### Give your classes something to use from the message handler
+
+I think there is no need of so much description if you are arrived here.
+
+```python
+# hold the last command used
+self.last_command = {}
+# ctor time
+self.start_time = datetime.now().timestamp()
+# event bus.
+# we have some handlers all around.
+# feel free to register and use it to spread stuffs from different threads
+self.bus = bus
+# the discord client providing api with our discord server
+self.discord_client = discord_client
+# a mongo db.
+# checkout mongo_models for some example of usage case
+self.mongo_db = mongo_db
+# hold a reference of both channel and server.
+# sometime we just do stuffs on other threads and we want to send a message
+self.secret_server = secret_server
+self.secret_channel = secret_channel
+# a git client linked with the bot github profile
+self.git_client = git_client
+# the main repo of the bot
+self.git_repo = git_repo
+# google play api
+self.gplay_handler = gplay.GPlay()
 ```
 
-## Auto update
-The bot auto-update itself every hour from the github repo.
+the things listed can be used to build your classes and stuffs.

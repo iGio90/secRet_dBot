@@ -22,9 +22,17 @@ def calculate_pr_points(git_user_id, git_user_name, message):
     req = 0.7 * m_c
     if points > 0:
         dec = points / (m_c / 50)
-        req = req - dec
+        n_req = req - dec
+
+        # check if the new req points are less than 0.
+        # add 10% of the total users
         if req < 0:
             req = m_c % 10
+
+        # if the new req points is less than the 50% of the original ones
+        # let's add a 10%
+        if n_req < req % 50:
+            n_req += req % 10
     return float("{0:.2f}".format(req))
 
 

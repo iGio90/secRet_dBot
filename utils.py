@@ -16,7 +16,7 @@ def build_default_embed(title, description, color, icon=True, author=True):
     if icon:
         embed.set_thumbnail(url=ICON)
     if author:
-        embed.set_author(name="secRet", url="https://secret.re")
+        embed.set_author(name="secret.re", url="https://secret.re")
     return embed
 
 
