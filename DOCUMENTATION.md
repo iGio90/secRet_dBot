@@ -83,3 +83,7 @@ self.gplay_handler = gplay.GPlay()
 ```
 
 the things listed can be used to build your classes and stuffs.
+
+## Develop and test
+To develop and test your stuff I believe you can just create a test.py and implement it as a command,
+however, you may want to try some cool api from discord and so you can use the ``samples/``.
