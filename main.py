@@ -1,15 +1,9 @@
-import asyncio
 import discord
 import json
 import os
 import sys
-import utils
 
-from event_bus import EventBus
-from github import Github
-from message_handler import MessageHandler
-from mongoengine import *
-from secret import SecRet
+from secret import secret_context, secret_rest, secret_worker, utils
 
 
 class SecRetDBot(object):
@@ -18,47 +12,20 @@ class SecRetDBot(object):
         with open('configs.json', 'r') as f:
             self.configs = json.load(f)
 
-        # event bus and loop
-        self.main_loop = asyncio.get_event_loop()
-        self.bus = EventBus()
-
-        # mongo db free4all
-        connect('secret')
-        self.mongo_db = Document._get_db()
-
-        # discord
-        self.discord_client = discord.Client()
-        self.secret_server = discord.Server(id='326095959173890059')
-        self.secret_channel = discord.Channel(id='404630967257530372',
-                                              server=self.secret_server)
-        self.welcome_channel = discord.Channel(id='404795628019777557',
-                                               server=self.secret_server)
-
-        # github
-        self.git_client = Github(self.configs['github_username'], self.configs['github_password'])
-        self.repo = self.git_client.get_repo('secRetDBot/secRet_dBot')
-
-        # message handler
-        self.message_handler = MessageHandler(self.bus, self.discord_client, self.mongo_db,
-                                              self.secret_server, self.secret_channel,
-                                              self.git_client, self.repo)
-
-        # secret thread for additional periodic stuffs
-        secret = SecRet(self.bus, self.repo)
-        secret.setName('secRet')
-        secret.start()
+        # context which hold a ref of everything we can use all-around
+        self.secret_context = secret_context.SecRetContext(self.configs)
 
         # register bus events
-        self.bus.add_event(self.secret_send, 'secret_send')
-        self.bus.add_event(self.secret_restart, 'secret_restart')
-        self.bus.add_event(self.secret_ping, 'secret_ping')
-        self.bus.add_event(self.secret_command, 'secret_command')
+        self.secret_context.bus.add_event(self.secret_send, 'secret_send')
+        self.secret_context.bus.add_event(self.secret_restart, 'secret_restart')
+        self.secret_context.bus.add_event(self.secret_ping, 'secret_ping')
+        self.secret_context.bus.add_event(self.secret_command, 'secret_command')
 
         # register discord events
-        self.discord_client.event(self.on_ready)
-        self.discord_client.event(self.on_member_join)
-        self.discord_client.event(self.on_member_remove)
-        self.discord_client.event(self.on_message)
+        self.secret_context.discord_client.event(self.on_ready)
+        self.secret_context.discord_client.event(self.on_member_join)
+        self.secret_context.discord_client.event(self.on_member_remove)
+        self.secret_context.discord_client.event(self.on_message)
 
     async def on_ready(self):
         print('----------------------------')
@@ -70,20 +37,21 @@ class SecRetDBot(object):
         embed.set_thumbnail(url=utils.ICON)
         embed.add_field(name="!help", value="initial help")
         embed.add_field(name="!commands", value="available commands")
-        await self.discord_client.send_message(self.secret_channel, embed=embed)
+        await self.secret_context.discord_client.send_message(self.secret_context.secret_channel, embed=embed)
 
     async def on_member_join(self, member):
         embed = utils.simple_embed('Welcome', member.mention + ' has join',
                                    utils.random_color())
-        await self.discord_client.send_message(self.welcome_channel, embed=embed)
+        await self.secret_context.discord_client.send_message(
+            self.secret_context.welcome_channel, embed=embed)
 
     async def on_member_remove(self, member):
         embed = utils.simple_embed('Welcome', member.mention + ' has left',
                                    utils.random_color())
-        await self.discord_client.send_message(self.welcome_channel, embed=embed)
+        await self.secret_context.discord_client.send_message(self.secret_context.welcome_channel, embed=embed)
 
     async def on_message(self, message):
-        await self.message_handler.on_message(message)
+        await self.secret_context.message_handler.on_message(message)
 
     def secret_command(self, command):
         """
@@ -95,24 +63,26 @@ class SecRetDBot(object):
         with bus
         """
         message = discord.Message(reactions=[])
-        message.channel = self.secret_channel
-        message.server = self.secret_server
+        message.channel = self.secret_context.secret_channel
+        message.server = self.secret_context.secret_server
         message.content = command
         # kill the author
         message.author = None
-        self.main_loop.create_task(self.message_handler.on_message(message))
+        self.secret_context.main_loop.create_task(
+            self.secret_context.message_handler.on_message(message))
 
     def secret_ping(self):
         """
         hourly ping from secret parallel thread
         """
-        self.main_loop.create_task(self.message_handler.secret_status(None))
+        self.secret_context.main_loop.create_task(
+            self.secret_context.message_handler.secret_status(None))
 
     def secret_restart(self):
         """
         restart the bot with updated code
         """
-        self.main_loop.create_task(self._restart())
+        self.secret_context.main_loop.create_task(self._restart())
 
     def secret_send(self, message=None):
         """
@@ -121,32 +91,46 @@ class SecRetDBot(object):
         :param: message
         a string or embed object
         """
-        self.main_loop.create_task(self._as_secret_send(message))
+        self.secret_context.main_loop.create_task(self._as_secret_send(message))
 
     def start(self):
         """
-        connect the discord bot
+        setup rest server, secret worker and discord bot
         """
         try:
-            self.discord_client.run(self.configs['discord_token'])
+            # rest server
+            rest = secret_rest.SecRetRest(self.secret_context)
+            rest.start()
+
+            # secret thread for additional periodic stuffs
+            secret_worker_thread = secret_worker.SecRet(self.secret_context)
+            secret_worker_thread.setName('secRet worker')
+            secret_worker_thread.start()
+
+            self.secret_context.discord_client.run(self.configs['discord_token'])
         except Exception as e:
+            print(e)
             # just restart it... maybe a timeout from discord!
             self.start()
+            pass
 
     async def _as_secret_send(self, message):
         if message:
             if isinstance(message, str):
-                await self.discord_client.send_message(self.secret_channel, message)
+                await self.secret_context.discord_client.send_message(
+                    self.secret_context.secret_channel, message)
             elif isinstance(message, discord.Embed):
-                await self.discord_client.send_message(self.secret_channel, embed=message)
+                await self.secret_context.discord_client.send_message(
+                    self.secret_context.secret_channel, embed=message)
 
     async def _restart(self):
         print('----------------------------')
         print('secRet bot is now restarting')
         print('----------------------------')
-        await self.discord_client.send_message(self.secret_channel,
-                                               embed=utils.simple_embed('restart', 'restarting secRet dBot',
-                                                                        utils.random_color()))
+        await self.secret_context.discord_client.send_message(
+            self.secret_context.secret_channel,
+            embed=utils.simple_embed('restart', 'restarting secRet dBot',
+                                     utils.random_color()))
         os.execv(sys.executable, [sys.executable.split("/")[-1]] + sys.argv)
 
 

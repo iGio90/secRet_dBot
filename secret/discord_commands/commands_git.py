@@ -1,9 +1,8 @@
 import discord
 import time
 
-import utils
-
 from mongo_models import pull_vote, user
+from secret import utils
 
 
 def calculate_pr_points(git_user_id, git_user_name, message):
@@ -95,22 +94,22 @@ async def get_last_commits(message, discord_client, git_repo):
     await discord_client.send_message(message.channel, embed=embed)
 
 
-async def git(message, discord_client, git_client, git_repo, bus):
+async def git(message, secret_context):
     parts = message.content.split(" ")
 
     if len(parts) < 2:
-        await print_git_help(bus)
+        await print_git_help(secret_context.bus)
     else:
         if parts[1] == 'commits':
-            await get_last_commits(message, discord_client, git_repo)
+            await get_last_commits(message, secret_context.discord_client, secret_context.git_repo)
         elif parts[1] == 'link':
-            await link_git(message, discord_client, git_client)
+            await link_git(message, secret_context.discord_client, secret_context.git_client)
         elif parts[1] == 'search':
             try:
                 what = parts[2]
                 if what == 'user':
                     try:
-                        git_user = git_client.legacy_search_users(parts[3])[0]
+                        git_user = secret_context.git_client.legacy_search_users(parts[3])[0]
                         embed = discord.Embed(title="search result",
                                               type='rich',
                                               description=parts[3],
@@ -125,10 +124,10 @@ async def git(message, discord_client, git_client, git_repo, bus):
                             embed.add_field(name='contributions', value=str(git_user.contributions))
                         if git_user.bio is not None:
                             embed.add_field(name='bio', value=git_user.bio, inline=False)
-                        await discord_client.send_message(message.channel, embed=embed)
+                        await secret_context.discord_client.send_message(message.channel, embed=embed)
                     except Exception as e:
                         embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
-                        await discord_client.send_message(message.channel, embed=embed)
+                        await secret_context.discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
                 # just don't reply
                 pass
@@ -137,10 +136,10 @@ async def git(message, discord_client, git_client, git_repo, bus):
                 user.User.objects.get(discord_id=message.author.id).delete()
                 embed = utils.simple_embed('success', 'you are now unlinked and your points are back to 0',
                                            discord.Color.green())
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
             except user.DoesNotExist:
                 embed = utils.simple_embed('info', 'you are not linked with any github id', discord.Color.blue())
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
 
 
 async def link_git(message, discord_client, git_client):
@@ -258,10 +257,10 @@ async def on_post_merge(message, discord_client, db_pull_doc):
         pass
 
 
-async def pr(message, discord_client, git_repo):
+async def pr(message, secret_context):
     parts = message.content.split(" ")
     if len(parts) == 1:
-        await print_pr_help(message, discord_client, git_repo)
+        await print_pr_help(message, secret_context.discord_client, secret_context.git_repo)
     else:
         if parts[1] == 'check':
             try:
@@ -269,18 +268,18 @@ async def pr(message, discord_client, git_repo):
                 try:
                     db_pull_doc = pull_vote.PullVote.objects.get(pull_id=id)
                     if db_pull_doc.points >= db_pull_doc.required_points:
-                        await check_merge(message, discord_client, db_pull_doc, git_repo)
+                        await check_merge(message, secret_context.discord_client, db_pull_doc, secret_context.git_repo)
                     else:
-                        prq = git_repo.get_pull(db_pull_doc.pull_number)
-                        await print_pr(message, discord_client, prq, db_pull_doc)
+                        prq = secret_context.git_repo.get_pull(db_pull_doc.pull_number)
+                        await print_pr(message, secret_context.discord_client, prq, db_pull_doc)
                 except pull_vote.DoesNotExist as e:
-                    await discord_client.send_message(message.channel,
-                                                      embed=utils.simple_embed('error', 'pull request not found',
-                                                                               discord.Color.red()))
+                    await secret_context.discord_client.send_message(
+                        message.channel, embed=utils.simple_embed(
+                            'error', 'pull request not found', discord.Color.red()))
             except Exception as e:
-                await discord_client.send_message(message.channel,
-                                                  embed=utils.simple_embed('error', 'usage: !pr check *pull_id',
-                                                                           discord.Color.red()))
+                await secret_context.discord_client.send_message(
+                    message.channel, embed=utils.simple_embed(
+                        'error', 'usage: !pr check *pull_id', discord.Color.red()))
         elif parts[1] == 'downvote':
             try:
                 id = int(parts[2])
@@ -295,12 +294,12 @@ async def pr(message, discord_client, git_repo):
                         pass
                     if vote_points < 0:
                         desc = 'link your github with **!git link *git_user_name**'
-                        await discord_client.send_message(message.channel,
-                                                          embed=utils.simple_embed('info', desc, discord.Color.blue()))
+                        await secret_context.discord_client.send_message(
+                            message.channel, embed=utils.simple_embed('info', desc, discord.Color.blue()))
                     elif message.author.id in db_pull_doc.votes:
-                        await discord_client.send_message(message.channel,
-                                                          embed=utils.simple_embed('error', 'you already voted this pr',
-                                                                                   discord.Color.red()))
+                        await secret_context.discord_client.send_message(
+                            message.channel, embed=utils.simple_embed(
+                                'error', 'you already voted this pr', discord.Color.red()))
                     else:
                         db_pull_doc.points -= vote_points
                         db_pull_doc.points = float("{0:.2f}".format(db_pull_doc.points))
@@ -315,15 +314,15 @@ async def pr(message, discord_client, git_repo):
                                                    + '**' + '\nRequired points: **' + str(db_pull_doc.required_points)
                                                    + '**',
                                                    discord.Color.green())
-                        await discord_client.send_message(message.channel, embed=embed)
+                        await secret_context.discord_client.send_message(message.channel, embed=embed)
                 except pull_vote.DoesNotExist as e:
-                    await discord_client.send_message(message.channel,
-                                                      embed=utils.simple_embed('error', 'pull request not found',
-                                                                               discord.Color.red()))
+                    await secret_context.discord_client.send_message(
+                        message.channel, embed=utils.simple_embed(
+                            'error', 'pull request not found', discord.Color.red()))
             except Exception as e:
-                await discord_client.send_message(message.channel,
-                                                  embed=utils.simple_embed('error', 'usage: !pr downvote *pull_id',
-                                                                           discord.Color.red()))
+                await secret_context.discord_client.send_message(
+                    message.channel, embed=utils.simple_embed(
+                        'error', 'usage: !pr downvote *pull_id', discord.Color.red()))
         elif parts[1] == 'upvote':
             try:
                 id = int(parts[2])
@@ -338,12 +337,12 @@ async def pr(message, discord_client, git_repo):
                         pass
                     if vote_points < 0:
                         desc = 'link your github with **!git link**'
-                        await discord_client.send_message(message.channel,
-                                                          embed=utils.simple_embed('info', desc, discord.Color.blue()))
+                        await secret_context.discord_client.send_message(
+                            message.channel, embed=utils.simple_embed('info', desc, discord.Color.blue()))
                     elif message.author.id in db_pull_doc.votes:
-                        await discord_client.send_message(message.channel,
-                                                          embed=utils.simple_embed('error', 'you already voted this pr',
-                                                                                   discord.Color.red()))
+                        await secret_context.discord_client.send_message(
+                            message.channel, embed=utils.simple_embed(
+                                'error', 'you already voted this pr', discord.Color.red()))
                     else:
                         db_pull_doc.points += vote_points
                         db_pull_doc.points = float("{0:.2f}".format(db_pull_doc.points))
@@ -361,7 +360,7 @@ async def pr(message, discord_client, git_repo):
                                                    + '**' + '\nRequired points: **' + str(db_pull_doc.required_points)
                                                    + '**',
                                                    discord.Color.green())
-                        await discord_client.send_message(message.channel, embed=embed)
+                        await secret_context.discord_client.send_message(message.channel, embed=embed)
 
                         if db_pull_doc.points >= db_pull_doc.required_points:
                             try:
@@ -375,16 +374,17 @@ async def pr(message, discord_client, git_repo):
                                                            'pr ' + db_pull_doc.pull_title + ' by **' +
                                                            db_pull_doc.user_name + '** has been accepted.',
                                                            discord.Color.green())
-                            await discord_client.send_message(message.channel, embed=embed)
-                            await check_merge(message, discord_client, db_pull_doc, git_repo)
+                            await secret_context.discord_client.send_message(message.channel, embed=embed)
+                            await check_merge(message, secret_context.discord_client,
+                                              db_pull_doc, secret_context.git_repo)
                 except pull_vote.DoesNotExist as e:
-                    await discord_client.send_message(message.channel,
-                                                      embed=utils.simple_embed('error', 'pull request not found',
-                                                                               discord.Color.red()))
+                    await secret_context.discord_client.send_message(
+                        message.channel, embed=utils.simple_embed(
+                            'error', 'pull request not found', discord.Color.red()))
             except Exception as e:
-                await discord_client.send_message(message.channel,
-                                                  embed=utils.simple_embed('error', 'usage: !pr upvote *pull_id',
-                                                                           discord.Color.red()))
+                await secret_context.discord_client.send_message(
+                    message.channel, embed=utils.simple_embed(
+                        'error', 'usage: !pr upvote *pull_id', discord.Color.red()))
 
 
 async def print_git_help(bus):

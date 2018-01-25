@@ -1,7 +1,7 @@
 import discord
 import os
 import requests
-import utils
+from secret import utils
 import wikipedia
 
 from colorthief import ColorThief
@@ -11,12 +11,12 @@ WIKI_ICON = 'https://upload.wikimedia.org/wikipedia/foundation/thumb/2/20/' \
             'Wikipedia-logo-v2-en_SVG.svg/200px-Wikipedia-logo-v2-en_SVG.svg.png'
 
 
-async def on_message(message, discord_client, bus):
+async def on_message(message, secret_context):
     parts = message.content.split(" ")
     p_len = len(parts)
     if p_len < 2:
         # print the help
-        bus.emit('secret_command', command='!help wiki')
+        secret_context.bus.emit('secret_command', command='!help wiki')
     elif p_len > 2:
         cmd = parts[1]
         q = str.join(" ", parts[2:])
@@ -28,12 +28,12 @@ async def on_message(message, discord_client, bus):
                 embed.set_thumbnail(url=WIKI_ICON)
                 for result in r:
                     embed.add_field(name=result, value='!wikipedia fetch **' + result + '**', inline=False)
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
             else:
                 embed = utils.simple_embed('wikipedia', 'no results for: **' + q + '**',
                                            discord.Color.red())
                 embed.set_thumbnail(url=WIKI_ICON)
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
         elif cmd == 'fetch':
             try:
                 r = wikipedia.page(q)
@@ -61,16 +61,16 @@ async def on_message(message, discord_client, bus):
                             color = int(utils.rgb_to_hex(dominant_color), 16)
                 embed = utils.simple_embed(q, r.summary, color)
                 embed.set_thumbnail(url=img)
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
             except wikipedia.PageError as e:
                 embed = utils.simple_embed('wikipedia', 'no results for: **' + q + '**',
                                            discord.Color.red())
                 embed.set_thumbnail(url=WIKI_ICON)
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
             except wikipedia.DisambiguationError as e:
                 embed = utils.simple_embed('wikipedia', 'no results for: **' + q + '**. Use !wiki search *keywords and '
                                                                                    'provide a working page to fetch.',
                                            discord.Color.red())
                 embed.set_thumbnail(url=WIKI_ICON)
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
 

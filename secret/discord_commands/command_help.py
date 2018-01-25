@@ -1,6 +1,6 @@
 import discord
 
-import utils
+from secret import utils
 
 
 async def commands(message, discord_client, admin_commands_map, dev_commands_map, commands_map, shortcuts_map):

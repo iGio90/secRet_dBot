@@ -3,12 +3,10 @@ import random
 
 import discord
 import urllib
-import utils
+from secret import utils
 
-from api import accuweather, gplay, wikipedia
-from commands import command_help, command_status, \
-    commands_gif, commands_git, command_test
-from datetime import datetime
+from secret.api import gplay, wikipedia, accuweather
+from secret.discord_commands import command_test, commands_git, commands_gif, command_help, command_status
 from mongo_models import command_log
 
 
@@ -22,60 +20,30 @@ class MessageHandler(object):
     4) if it's too much code, consider create your own class/scripts inside commands package
        and feed it with client, bus and whatever is needed
 
-    :param: bus
-    event bus
-    :param: discord_client
-    the discord client
-    :param: mongo_db
-    instance of mongo db
-    :param: secret_server
-    instance of discord server object holding server id
-    :param: secret_channel
-    instance of discord channel object holding #secRet id
-    :param: git_client
-    instance of git client
-    :param: git_repo
-    the git repository
+    :param: secret_context
+    our context holding all the references and things we can use
     """
 
-    def __init__(self, bus, discord_client, mongo_db, secret_server, secret_channel, git_client, git_repo):
+    def __init__(self, secret_context):
         # load maps
-        with open('commands/map/admin_commands.json', 'r') as f:
+        with open('secret/discord_commands/map/admin_commands.json', 'r') as f:
             self.admin_commands_map = json.load(f)
-        with open('commands/map/dev_commands.json', 'r') as f:
+        with open('secret/discord_commands/map/dev_commands.json', 'r') as f:
             self.dev_commands_map = json.load(f)
-        with open('commands/map/user_commands.json', 'r') as f:
+        with open('secret/discord_commands/map/user_commands.json', 'r') as f:
             self.commands_map = json.load(f)
-        with open('commands/map/shortcuts.json', 'r') as f:
+        with open('secret/discord_commands/map/shortcuts.json', 'r') as f:
             self.shortcuts_map = json.load(f)
 
         # hold the last command used
         self.last_command = {}
-        # ctor time
-        self.start_time = datetime.now().timestamp()
-        # event bus.
-        # we have some handlers all around.
-        # feel free to register and use it to spread stuffs from different threads
-        self.bus = bus
-        # the discord client providing api with our discord server
-        self.discord_client = discord_client
-        # a mongo db.
-        # checkout mongo_models for some example of usage case
-        self.mongo_db = mongo_db
-        # hold a reference of both channel and server.
-        # sometime we just do stuffs on other threads and we want to send a message
-        self.secret_server = secret_server
-        self.secret_channel = secret_channel
-        # a git client linked with the bot github profile
-        self.git_client = git_client
-        # the main repo of the bot
-        self.git_repo = git_repo
+        # secret context
+        self.secret_context = secret_context
         # google play api
         self.gplay_handler = gplay.GPlay()
 
         # arbitrary py execution for command testing
-        self.cmd_tester = command_test.TestCMD(self.discord_client, self.mongo_db,
-                                               self.bus, self.git_client, self.git_repo)
+        self.cmd_tester = command_test.TestCMD(self.secret_context)
 
     ##
     # commands
@@ -85,7 +53,7 @@ class MessageHandler(object):
         """
         list the commands
         """
-        await command_help.commands(message, self.discord_client, self.admin_commands_map,
+        await command_help.commands(message, self.secret_context.discord_client, self.admin_commands_map,
                                     self.dev_commands_map, self.commands_map, self.shortcuts_map)
 
     async def commands_history(self, message):
@@ -94,21 +62,20 @@ class MessageHandler(object):
             embed = utils.build_default_embed('commands history', '-', discord.Color.teal(), icon=False)
             for log in command_log.CommandLog.objects[:10]:
                 embed.add_field(name=log.user_name, value=log.command, inline=False)
-            await self.discord_client.send_message(message.channel, embed=embed)
+            await self.secret_context.discord_client.send_message(message.channel, embed=embed)
         else:
             if cmd_list[1] == 'clear':
                 c = command_log.CommandLog.objects.count()
                 command_log.CommandLog.drop_collection()
-                await self.discord_client.send_message(message.channel,
-                                                       embed=utils.simple_embed('done',
-                                                                                "removed " + str(c) + " entries",
-                                                                                discord.Color.dark_green()))
+                await self.secret_context.discord_client.send_message(
+                    message.channel, embed=utils.simple_embed('done', "removed " + str(c) + " entries",
+                                                              discord.Color.dark_green()))
 
     async def core_update(self, message):
-        self.bus.emit('secret_update', print_no_update=True)
+        self.secret_context.bus.emit('secret_update', print_no_update=True)
 
     async def devme(self, message):
-        s = open('DOCUMENTATION.md', 'r')
+        s = open('../DOCUMENTATION.md', 'r')
         msg = s.read()
         l = 0
         msg_len = len(msg)
@@ -121,33 +88,33 @@ class MessageHandler(object):
             l += 1000
             embed = utils.build_default_embed('', '', discord.Color.dark_green())
             embed.add_field(name="contribute and improve secRet dBot", value=m, inline=False)
-            await self.discord_client.send_message(message.channel, embed=embed)
+            await self.secret_context.discord_client.send_message(message.channel, embed=embed)
 
     async def exec(self, message):
         cmd = message.content.replace("!exec ", "")
         r = utils.run_shell_command(cmd)
         for line in r:
-            await self.discord_client.send_message(message.channel, line)
+            await self.secret_context.discord_client.send_message(message.channel, line)
 
     async def gif(self, message):
-        await commands_gif.on_message(message, self.discord_client, self.bus)
+        await commands_gif.on_message(message, self.secret_context)
 
     async def git(self, message):
-        await commands_git.git(message, self.discord_client, self.git_client, self.git_repo, self.bus)
+        await commands_git.git(message, self.secret_context)
 
     async def gplay(self, message):
-        await self.gplay_handler.on_message(message, self.discord_client, self.bus)
+        await self.gplay_handler.on_message(message, self.secret_context)
 
     async def help(self, message):
         """
         print help
         """
-        await command_help.help(message, self.discord_client, [
+        await command_help.help(message, self.secret_context.discord_client, [
             self.admin_commands_map, self.dev_commands_map, self.commands_map
         ], self.shortcuts_map)
 
     async def pr(self, message):
-        await commands_git.pr(message, self.discord_client, self.git_repo)
+        await commands_git.pr(message, self.secret_context)
 
     async def qr_generate(self, message):
         embed = discord.Embed(title='QR Code generator', type='rich',
@@ -162,7 +129,7 @@ class MessageHandler(object):
             else:
                 embed.set_image(url="https://api.qrserver.com/v1/create-qr-code/?data=" + data + "&size=200x200")
 
-        await self.discord_client.send_message(message.channel, embed=embed)
+        await self.secret_context.discord_client.send_message(message.channel, embed=embed)
 
     async def repeat(self, message):
         if 'function' in self.last_command and 'message' in self.last_command:
@@ -173,7 +140,7 @@ class MessageHandler(object):
         """
         restart the scripts (update changes)
         """
-        self.bus.emit('secret_restart')
+        self.secret_context.bus.emit('secret_restart')
 
     async def roll(self, message):
         """
@@ -188,30 +155,29 @@ class MessageHandler(object):
                 pass
 
         embed = utils.simple_embed('roll', '**' + str(random.randint(0, max)) + '**', utils.random_color())
-        await self.discord_client.send_message(message.channel, embed=embed)
+        await self.secret_context.discord_client.send_message(message.channel, embed=embed)
 
     async def rules(self, message):
         """
         print rules
         """
         embed = utils.build_default_embed('', '', discord.Color.dark_green())
-        s = open('RULES.md', 'r')
+        s = open('../RULES.md', 'r')
         msg = s.read()
         embed.add_field(name="Rules of the house", value=msg, inline=False)
-        await self.discord_client.send_message(message.channel, embed=embed)
+        await self.secret_context.discord_client.send_message(message.channel, embed=embed)
 
     async def secret_status(self, message):
-        await command_status.secret_status(message, self.discord_client, self.git_client,
-                                           self.mongo_db, self.start_time, self.secret_channel)
+        await command_status.secret_status(self.secret_context)
 
     async def test_command(self, message, lang):
         await self.cmd_tester.on_message(message, lang)
 
     async def weather(self, message):
-        await accuweather.on_message(message, self.discord_client)
+        await accuweather.on_message(message, self.secret_context)
 
     async def wikipedia(self, message):
-        await wikipedia.on_message(message, self.discord_client, self.bus)
+        await wikipedia.on_message(message, self.secret_context)
 
     ##
     # end commands
@@ -223,7 +189,7 @@ class MessageHandler(object):
         """
 
         # we don't want interaction in any other channels
-        if message.channel.id != self.secret_channel.id:
+        if message.channel.id != self.secret_context.secret_channel.id:
             return
 
         # quick content reference

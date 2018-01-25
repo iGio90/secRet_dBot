@@ -1,17 +1,11 @@
 import discord
 import execjs
-import requests
-import utils
+from secret import utils
 
 
 class TestCMD(object):
-    def __init__(self, discord_client, mongo_db, bus, git_client, git_repo):
-        self.discord_client = discord_client
-        self.mongo_db = mongo_db
-        self.bus = bus
-        self.git_client = git_client
-        self.git_repo = git_repo
-
+    def __init__(self, secret_context):
+        self.secret_context = secret_context
         self.supported_languages = ['python', 'javascript']
 
     async def on_message(self, message, lang):
@@ -26,4 +20,4 @@ class TestCMD(object):
             # await self.discord_client.delete_message(message)
         except Exception as e:
             embed = utils.simple_embed('error', str(e), discord.Color.red())
-            await self.discord_client.send_message(message.channel, embed=embed)
+            await self.secret_context.discord_client.send_message(message.channel, embed=embed)
