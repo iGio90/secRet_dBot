@@ -22,7 +22,7 @@ class TestCMD(object):
                 cmd = cmd.replace('```python', '')
                 cmd = cmd.replace('```', '')
             if cmd is not None:
-                self.discord_client.delete_message(message)
+                await self.discord_client.delete_message(message)
                 exec(cmd)
         except Exception as e:
             embed = utils.simple_embed('error', e, discord.Color.red())
