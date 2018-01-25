@@ -33,6 +33,21 @@
         "description": "print initial help",
         "function": "help"
     },
+    "gif": {
+        "author": "iGio90",
+        "description": "search and get gifs",
+        "function": "gif",
+        "sub_commands": [
+            {
+                "name": "random",
+                "description": "post a random gif"
+            },
+            {
+                "name": "search",
+                "description": "search gif with the given query"
+            }
+        ]
+    },
     "git": {
         "author": "iGio90",
         "description": "github commands",

@@ -25,5 +25,5 @@ class TestCMD(object):
                 execjs.eval(cmd)
             # await self.discord_client.delete_message(message)
         except Exception as e:
-            embed = utils.simple_embed('error', e, discord.Color.red())
+            embed = utils.simple_embed('error', str(e), discord.Color.red())
             await self.discord_client.send_message(message.channel, embed=embed)

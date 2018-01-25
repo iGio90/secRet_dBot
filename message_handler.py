@@ -7,7 +7,7 @@ import utils
 
 from api import accuweather, gplay, wikipedia
 from commands import command_help, command_status, \
-    commands_git, command_test
+    commands_gif, commands_git, command_test
 from datetime import datetime
 from mongo_models import command_log
 
@@ -129,6 +129,9 @@ class MessageHandler(object):
         for line in r:
             await self.discord_client.send_message(message.channel, line)
 
+    async def gif(self, message):
+        await commands_gif.on_message(message, self.discord_client, self.bus)
+        
     async def git(self, message):
         await commands_git.git(message, self.discord_client, self.git_client, self.git_repo, self.bus)
 
