@@ -24,4 +24,4 @@ class TestCMD(object):
                 cmd = str.join(' ', parts[2:])
                 cmd = cmd.replace('```', '')
             if cmd is not None:
-                await exec(cmd)
+                exec(cmd)
