@@ -226,7 +226,7 @@ class MessageHandler(object):
         content = message.content
 
         # command test
-        if content.startswith("```python```") and (utils.is_dev(message.author)
+        if content.startswith("```python") and (utils.is_dev(message.author)
                                                    or utils.is_admin(message.author)):
             await self.test_command(message)
             return
