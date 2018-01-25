@@ -131,7 +131,7 @@ class MessageHandler(object):
 
     async def gif(self, message):
         await commands_gif.on_message(message, self.discord_client, self.bus)
-        
+
     async def git(self, message):
         await commands_git.git(message, self.discord_client, self.git_client, self.git_repo, self.bus)
 
