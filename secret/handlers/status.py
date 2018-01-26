@@ -32,11 +32,12 @@ class Status(object):
         status = {'connected': self.secret_context.discord_client.is_logged_in}
         if status['connected']:
             for server in self.secret_context.discord_client.servers:
+                created = '{0:%Y-%m-%d %H:%M:%S}'.format(server.created_at)
                 status['id'] = server.id
                 status['name'] = server.name
                 status['icon'] = server.icon_url
                 status['members'] = len(server.members)
-                status['created_at'] = server.created_at
+                status['created_at'] = created
                 break
         return status
 
