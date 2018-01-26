@@ -12,7 +12,7 @@ I don't know how to call this. A bot, an AI (it will be a fu*@!-c2ing AI) so fro
 The baby can
 * auto update himself every hour from his git repo
 * auto merge pull requests after a vote from our discord server
-* provide lot of stuffs to your fantasy (mongodb, discord api, github api, soon a web and rest server).
+* provide lot of stuffs to your fantasy (mongodb, discord api, github api, a web and restful server).
 Read more in the documentation to find out more things.
 
 
