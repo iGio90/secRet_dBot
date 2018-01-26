@@ -50,6 +50,7 @@ def calculate_vote_points(message, votes, required_points):
             # min is 2 even for admins
             # grant the 90% of the points
             points = float("{0:.2f}".format(required_points * 90 / 100))
+        points = float("{0:.2f}".format(points))
         return points, user_doc.discord_name
     except user.DoesNotExist as e:
         return -1
