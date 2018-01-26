@@ -12,7 +12,7 @@ class Status(object):
         self.bot_status_icon = "https://upload.wikimedia.org/wikipedia/commons/" \
                                "thumb/3/30/Icons8_flat_clock.svg/2000px-Icons8_flat_clock.svg.png"
         # discord status icon
-        self.discord_status_icon = "https://png.icons8.com/ios/1600/overwolf.png"
+        self.discord_status_icon = "http://i.neoseeker.com/n/1/overwolflogo.png"
         # git status icon
         self.git_status_icon = "https://avatars3.githubusercontent.com/u/1153419?s=400&v=4"
         # mongo status icon

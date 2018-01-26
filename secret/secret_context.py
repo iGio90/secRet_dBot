@@ -29,6 +29,7 @@ class SecRetContext(object):
         # github
         self.git_client = Github(configs['github_username'], configs['github_password'])
         self.git_repo = self.git_client.get_repo('secRetDBot/secRet_dBot')
+        self.web_repo = self.git_client.get_repo('secRetDBot/secRet-bot-frontend')
 
         # discord message handler
         self.message_handler = MessageHandler(self)

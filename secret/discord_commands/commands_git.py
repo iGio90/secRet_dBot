@@ -58,9 +58,9 @@ def calculate_vote_points(message, votes, required_points):
         return -1
 
 
-async def check_merge(message, discord_client, db_pull_doc, git_repo):
+async def check_merge(message, secret_context, db_pull_doc):
     if db_pull_doc.points >= db_pull_doc.required_points:
-        await merge_pr(message, discord_client, git_repo, db_pull_doc)
+        await merge_pr(message, secret_context, db_pull_doc)
 
 
 def get_last_commit(git_repo):
@@ -73,7 +73,7 @@ def get_last_commit(git_repo):
     return git_repo.get_commits()[0]
 
 
-async def get_last_commits(message, discord_client, git_repo):
+async def get_last_commits(message, secret_context):
     """
     :param: git_repo
     the repo object
@@ -84,7 +84,7 @@ async def get_last_commits(message, discord_client, git_repo):
                           color=discord.Colour(0xA2746A))
     embed.set_author(name=utils.REPO_SHORT, url=utils.REPO, icon_url=utils.ICON)
     k = 0
-    for commit in git_repo.get_commits():
+    for commit in secret_context.git_repo.get_commits():
         if k == 10:
             break
         commit_date = '{0:%Y-%m-%d %H:%M:%S}'.format(commit.commit.author.date)
@@ -92,7 +92,7 @@ async def get_last_commits(message, discord_client, git_repo):
                         value=commit.commit.author.name + " - " + commit_date,
                         inline=False)
         k += 1
-    await discord_client.send_message(message.channel, embed=embed)
+    await secret_context.discord_client.send_message(message.channel, embed=embed)
 
 
 async def git(message, secret_context):
@@ -102,9 +102,9 @@ async def git(message, secret_context):
         await print_git_help(secret_context.bus)
     else:
         if parts[1] == 'commits':
-            await get_last_commits(message, secret_context.discord_client, secret_context.git_repo)
+            await get_last_commits(message, secret_context)
         elif parts[1] == 'link':
-            await link_git(message, secret_context.discord_client, secret_context.git_client)
+            await link_git(message, secret_context)
         elif parts[1] == 'search':
             try:
                 what = parts[2]
@@ -143,7 +143,7 @@ async def git(message, secret_context):
                 await secret_context.discord_client.send_message(message.channel, embed=embed)
 
 
-async def link_git(message, discord_client, git_client):
+async def link_git(message, secret_context):
     parts = message.content.split(" ")
     try:
         git_nick_name = parts[2]
@@ -151,7 +151,7 @@ async def link_git(message, discord_client, git_client):
             u = user.User.objects.get(discord_id=message.author.id)
             embed = utils.simple_embed('info', 'you are already linked to **' + u.git_user_name + '**',
                                        discord.Color.blue())
-            await discord_client.send_message(message.channel, embed=embed)
+            await secret_context.discord_client.send_message(message.channel, embed=embed)
         except user.DoesNotExist:
             try:
                 try:
@@ -159,7 +159,7 @@ async def link_git(message, discord_client, git_client):
                     if u.discord_id:
                         embed = utils.simple_embed('error', '**' + git_nick_name + '** already linked with: ' +
                                                    str(u.discord_id), discord.Color.red())
-                        await discord_client.send_message(message.channel, embed=embed)
+                        await secret_context.discord_client.send_message(message.channel, embed=embed)
                     else:
                         u.discord_id = message.author.id
                         u.discord_name = message.author.display_name
@@ -168,9 +168,9 @@ async def link_git(message, discord_client, git_client):
                         embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
                                                    message.author.id,
                                                    discord.Color.green())
-                        await discord_client.send_message(message.channel, embed=embed)
+                        await secret_context.discord_client.send_message(message.channel, embed=embed)
                 except user.DoesNotExist:
-                    git_user = git_client.legacy_search_users(git_nick_name)[0]
+                    git_user = secret_context.git_client.legacy_search_users(git_nick_name)[0]
                     r = 'yes'
                     if r == 'yes' or r == 'y':
                         u = user.User(git_user_id=git_user.id,
@@ -183,26 +183,26 @@ async def link_git(message, discord_client, git_client):
                             embed = utils.simple_embed('success', u.git_user_name + ' has been linked to ' +
                                                        message.author.id,
                                                        discord.Color.green())
-                            await discord_client.send_message(message.channel, embed=embed)
+                            await secret_context.discord_client.send_message(message.channel, embed=embed)
                         except user.NotUniqueError as e:
                             u = user.User.objects.get(git_user_id=git_user.login)
                             embed = utils.simple_embed('error', '**' + git_user.login + '** already linked with: ' +
                                                        str(u.discord_id), discord.Color.red())
-                            await discord_client.send_message(message.channel, embed=embed)
+                            await secret_context.discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
                 embed = utils.simple_embed('info', 'no user found', discord.Color.blue())
-                await discord_client.send_message(message.channel, embed=embed)
+                await secret_context.discord_client.send_message(message.channel, embed=embed)
     except Exception as e:
         desc = 'link your github with **!git link *git_user_name**'
-        await discord_client.send_message(message.channel,
-                                          embed=utils.simple_embed('info', desc, discord.Color.blue()))
+        await secret_context.discord_client.send_message(
+            message.channel, embed=utils.simple_embed('info', desc, discord.Color.blue()))
         embed = utils.simple_embed('error', desc, discord.Color.blue())
-        await discord_client.send_message(message.channel, embed=embed)
+        await secret_context.discord_client.send_message(message.channel, embed=embed)
         pass
 
 
-async def merge_pr(message, discord_client, git_repo, db_pull_doc):
-    git_pr = git_repo.get_pull(db_pull_doc.pull_number)
+async def merge_pr(message, secret_context, db_pull_doc):
+    git_pr = secret_context.git_repo.get_pull(db_pull_doc.pull_number)
     if git_pr and git_pr.mergeable:
         embed = discord.Embed(title=db_pull_doc.pull_title, type='rich', description=db_pull_doc.user_name,
                               color=discord.Color.green())
@@ -210,7 +210,7 @@ async def merge_pr(message, discord_client, git_repo, db_pull_doc):
             embed.add_field(name=vote['name'],
                             value=str(vote['points']),
                             inline=True)
-        await discord_client.send_message(message.channel, embed=embed)
+        await secret_context.discord_client.send_message(message.channel, embed=embed)
 
         status = git_pr.merge()
         if status.merged:
@@ -218,13 +218,13 @@ async def merge_pr(message, discord_client, git_repo, db_pull_doc):
             embed = utils.simple_embed('success',
                                        status.sha + ' **merged**. scheduled for next auto-update',
                                        discord.Color.green())
-            await discord_client.send_message(message.channel, embed=embed)
-            await on_post_merge(message, discord_client, db_pull_doc)
+            await secret_context.discord_client.send_message(message.channel, embed=embed)
+            await on_post_merge(message, secret_context, db_pull_doc)
         else:
             embed = utils.simple_embed('error',
                                        status.message,
                                        discord.Color.red())
-            await discord_client.send_message(message.channel, embed=embed)
+            await secret_context.discord_client.send_message(message.channel, embed=embed)
     else:
         if git_pr.merge:
             embed = utils.simple_embed('info',
@@ -234,10 +234,10 @@ async def merge_pr(message, discord_client, git_repo, db_pull_doc):
             embed = utils.simple_embed('error',
                                        'the pr can\'t be merged. check conflicts and resolve them!',
                                        discord.Color.green())
-        await discord_client.send_message(message.channel, embed=embed)
+        await secret_context.discord_client.send_message(message.channel, embed=embed)
 
 
-async def on_post_merge(message, discord_client, db_pull_doc):
+async def on_post_merge(message, secret_context, db_pull_doc):
     try:
         user_doc = user.User.objects.get(git_user_id=db_pull_doc.user_id)
         reward_points = db_pull_doc.required_points / 15.5
@@ -253,7 +253,7 @@ async def on_post_merge(message, discord_client, db_pull_doc):
         else:
             desc = '**' + str(reward_points) + '** given to: **' + user_doc.discord_name + '**'
         embed = utils.simple_embed('points attribution', desc, discord.Color.green())
-        await discord_client.send_message(message.channel, embed=embed)
+        await secret_context.discord_client.send_message(message.channel, embed=embed)
     except user.DoesNotExist as e:
         pass
 
@@ -269,7 +269,7 @@ async def pr(message, secret_context):
                 try:
                     db_pull_doc = pull_vote.PullVote.objects.get(pull_id=id)
                     if db_pull_doc.points >= db_pull_doc.required_points:
-                        await check_merge(message, secret_context.discord_client, db_pull_doc, secret_context.git_repo)
+                        await check_merge(message, secret_context, db_pull_doc)
                     else:
                         prq = secret_context.git_repo.get_pull(db_pull_doc.pull_number)
                         await print_pr(message, secret_context.discord_client, prq, db_pull_doc)
@@ -376,8 +376,7 @@ async def pr(message, secret_context):
                                                            db_pull_doc.user_name + '** has been accepted.',
                                                            discord.Color.green())
                             await secret_context.discord_client.send_message(message.channel, embed=embed)
-                            await check_merge(message, secret_context.discord_client,
-                                              db_pull_doc, secret_context.git_repo)
+                            await check_merge(message, secret_context, db_pull_doc)
                 except pull_vote.DoesNotExist as e:
                     await secret_context.discord_client.send_message(
                         message.channel, embed=utils.simple_embed(

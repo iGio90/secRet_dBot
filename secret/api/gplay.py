@@ -66,7 +66,7 @@ class GPlay(object):
         parts = message.content.split(" ")
         if len(parts) < 2:
             # print the help
-            bus.emit('secret_command', command='!help gplay')
+            secret_context.bus.emit('secret_command', command='!help gplay')
         else:
             if len(parts) > 2:
                 if parts[1] == 'search':

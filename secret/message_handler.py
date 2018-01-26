@@ -72,7 +72,14 @@ class MessageHandler(object):
                                                               discord.Color.dark_green()))
 
     async def core_update(self, message):
-        self.secret_context.bus.emit('secret_update', print_no_update=True)
+        parts = message.content.split[" "]
+        if len(parts) > 2:
+            if parts[1] == 'core':
+                self.secret_context.bus.emit('secret_update', print_no_update=True)
+            elif parts[2] == 'web':
+                self.secret_context.bus.emit('secret_update', print_no_update=True, web_update=True)
+        else:
+            self.secret_context.bus.emit('secret_update', print_no_update=True)
 
     async def devme(self, message):
         s = open('DOCUMENTATION.md', 'r')
