@@ -35,7 +35,7 @@ async def discord_status(secret_context):
 async def git_status(secret_context):
     status = secret_context.handler_status.get_git_status()
     embed = discord.Embed(title='git status', type='rich',
-                          description='*',
+                          description='** **',
                           color=utils.random_color())
     embed.set_thumbnail(url=status['icon'])
 
@@ -48,7 +48,7 @@ async def git_status(secret_context):
 async def mongo_status(secret_context):
     status = secret_context.handler_status.get_mongo_status()
     embed = discord.Embed(title='mongo status', type='rich',
-                          description='*',
+                          description='** **',
                           color=utils.random_color())
     embed.set_thumbnail(url=status['icon'])
     embed.add_field(name='host', value=status['host'], inline=True)
