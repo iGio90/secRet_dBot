@@ -72,7 +72,7 @@ class MessageHandler(object):
                                                               discord.Color.dark_green()))
 
     async def core_update(self, message):
-        parts = message.content.split[" "]
+        parts = message.content.split(" ")
         if len(parts) > 2:
             if parts[1] == 'core':
                 self.secret_context.bus.emit('secret_update', print_no_update=True)
