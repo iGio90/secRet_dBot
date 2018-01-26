@@ -29,8 +29,8 @@ class Status(object):
         }
 
     def get_discord_status(self):
-        status = {'connected': self.secret_context.discord_client.is_logged_in}
-        status['icon'] =
+        status = {'connected': self.secret_context.discord_client.is_logged_in,
+                  'icon': self.discord_status_icon}
         if status['connected']:
             for server in self.secret_context.discord_client.servers:
                 created = '{0:%Y-%m-%d %H:%M:%S}'.format(server.created_at)
