@@ -34,4 +34,4 @@ class SecRetContext(object):
         self.message_handler = MessageHandler(self)
 
         # handlers
-        self.handler_status = status.Status(self.mongo_db, self.git_client)
+        self.handler_status = status.Status(self)

@@ -2,9 +2,8 @@ from datetime import datetime, timedelta
 
 
 class Status(object):
-    def __init__(self, mongo_db, git_client):
-        self.mongo_db = mongo_db
-        self.git_client = git_client
+    def __init__(self, secret_context):
+        self.secret_context = secret_context
 
         # start time
         self.start_time = datetime.now().timestamp()
@@ -12,6 +11,8 @@ class Status(object):
         # bot status icon
         self.bot_status_icon = "https://upload.wikimedia.org/wikipedia/commons/" \
                                "thumb/3/30/Icons8_flat_clock.svg/2000px-Icons8_flat_clock.svg.png"
+        # discord status icon
+        self.discord_status_icon = "https://www.shareicon.net/data/256x256/2017/06/21/887435_logo_512x512.png"
         # git status icon
         self.git_status_icon = "https://avatars3.githubusercontent.com/u/1153419?s=400&v=4"
         # mongo status icon
@@ -27,18 +28,20 @@ class Status(object):
             'icon': self.bot_status_icon
         }
 
-    def get_git_status(self):
-        status = self.git_client.get_api_status()
-        updated = '{0:%Y-%m-%d %H:%M:%S}'.format(status.last_updated)
-        return {
-            'updated': updated,
-            'status': status.status,
-            'icon': self.git_status_icon
-        }
+    def get_discord_status(self):
+        status = {'connected': self.secret_context.discord_client.is_connected}
+        if status['connected']:
+            server = self.secret_context.discord_client.servers[0]
+            status['id'] = server.id
+            status['name'] = server.name
+            status['icon'] = server.icon_url
+            status['members'] = server.member_count
+            status['created_at'] = server.created_at
+        return status
 
     def get_mongo_status(self):
-        mongo_status = self.mongo_db.command("serverStatus")
-        db_stats = self.mongo_db.command("dbStats")
+        mongo_status = self.secret_context.mongo_db.command("serverStatus")
+        db_stats = self.secret_context.mongo_db.command("dbStats")
         return {
             'host': mongo_status['host'],
             'version': mongo_status['version'],
@@ -53,9 +56,19 @@ class Status(object):
             'icon': self.mongo_status_icon
         }
 
+    def get_git_status(self):
+        status = self.secret_context.git_client.get_api_status()
+        updated = '{0:%Y-%m-%d %H:%M:%S}'.format(status.last_updated)
+        return {
+            'updated': updated,
+            'status': status.status,
+            'icon': self.git_status_icon
+        }
+
     def get_status(self):
         return {
             'bot_status': self.get_bot_status(),
+            'discord_status': self.get_discord_status(),
             'git_status': self.get_git_status(),
             'mongo_status': self.get_mongo_status()
         }

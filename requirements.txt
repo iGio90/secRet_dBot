@@ -2,6 +2,7 @@ GPlayCli
 PyExecJS
 PyGithub
 aiohttp
+aiohttp_cors
 colorthief
 discord.py
 event_bus
