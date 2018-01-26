@@ -24,7 +24,7 @@ class SecRetRest(object):
         resource = cors.add(app.router.add_resource("/"))
 
         cors.add(
-            resource.add_route("GET", str), {
+            resource.add_route("GET", self.status), {
                 "http://secret.re": aiohttp_cors.ResourceOptions(
                     allow_credentials=True,
                     expose_headers=("X-SecretServer-Header",),

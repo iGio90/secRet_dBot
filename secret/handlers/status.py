@@ -29,7 +29,7 @@ class Status(object):
         }
 
     def get_discord_status(self):
-        status = {'connected': self.secret_context.discord_client.is_connected}
+        status = {'connected': self.secret_context.discord_client.is_logged_in}
         if status['connected']:
             server = self.secret_context.discord_client.servers[0]
             status['id'] = server.id
