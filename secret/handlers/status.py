@@ -35,7 +35,7 @@ class Status(object):
                 status['id'] = server.id
                 status['name'] = server.name
                 status['icon'] = server.icon_url
-                status['members'] = server.member_count
+                status['members'] = len(server.members)
                 status['created_at'] = server.created_at
                 break
         return status
