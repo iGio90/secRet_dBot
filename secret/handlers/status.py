@@ -12,7 +12,7 @@ class Status(object):
         self.bot_status_icon = "https://upload.wikimedia.org/wikipedia/commons/" \
                                "thumb/3/30/Icons8_flat_clock.svg/2000px-Icons8_flat_clock.svg.png"
         # discord status icon
-        self.discord_status_icon = "https://www.shareicon.net/data/256x256/2017/06/21/887435_logo_512x512.png"
+        self.discord_status_icon = "https://png.icons8.com/color/540/overwolf.png"
         # git status icon
         self.git_status_icon = "https://avatars3.githubusercontent.com/u/1153419?s=400&v=4"
         # mongo status icon
@@ -30,12 +30,12 @@ class Status(object):
 
     def get_discord_status(self):
         status = {'connected': self.secret_context.discord_client.is_logged_in}
+        status['icon'] =
         if status['connected']:
             for server in self.secret_context.discord_client.servers:
                 created = '{0:%Y-%m-%d %H:%M:%S}'.format(server.created_at)
                 status['id'] = server.id
                 status['name'] = server.name
-                status['icon'] = server.icon_url
                 status['members'] = len(server.members)
                 status['created_at'] = created
                 break

@@ -75,7 +75,7 @@ class MessageHandler(object):
         self.secret_context.bus.emit('secret_update', print_no_update=True)
 
     async def devme(self, message):
-        s = open('../DOCUMENTATION.md', 'r')
+        s = open('DOCUMENTATION.md', 'r')
         msg = s.read()
         l = 0
         msg_len = len(msg)
@@ -162,7 +162,7 @@ class MessageHandler(object):
         print rules
         """
         embed = utils.build_default_embed('', '', discord.Color.dark_green())
-        s = open('../RULES.md', 'r')
+        s = open('RULES.md', 'r')
         msg = s.read()
         embed.add_field(name="Rules of the house", value=msg, inline=False)
         await self.secret_context.discord_client.send_message(message.channel, embed=embed)
