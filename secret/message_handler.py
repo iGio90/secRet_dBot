@@ -176,10 +176,14 @@ class MessageHandler(object):
             else:
                 if parts[1] == 'bot':
                     await command_status.bot_status(self.secret_context)
+                elif parts[1] == 'discord':
+                    await command_status.discord_status(self.secret_context)
                 elif parts[1] == 'git':
                     await command_status.git_status(self.secret_context)
                 elif parts[1] == 'mongo':
                     await command_status.mongo_status(self.secret_context)
+                elif parts[1] == 'all':
+                    await  command_status.secret_status(self.secret_context)
         else:
             await command_status.bot_status(self.secret_context)
 
