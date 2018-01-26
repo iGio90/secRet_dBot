@@ -31,12 +31,13 @@ class Status(object):
     def get_discord_status(self):
         status = {'connected': self.secret_context.discord_client.is_logged_in}
         if status['connected']:
-            server = self.secret_context.discord_client.servers[0]
-            status['id'] = server.id
-            status['name'] = server.name
-            status['icon'] = server.icon_url
-            status['members'] = server.member_count
-            status['created_at'] = server.created_at
+            for server in self.secret_context.discord_client.servers:
+                status['id'] = server.id
+                status['name'] = server.name
+                status['icon'] = server.icon_url
+                status['members'] = server.member_count
+                status['created_at'] = server.created_at
+                break
         return status
 
     def get_mongo_status(self):
