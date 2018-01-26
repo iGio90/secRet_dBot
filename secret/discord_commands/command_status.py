@@ -4,9 +4,9 @@ from secret import utils
 
 
 async def bot_status(secret_context):
-    status = secret_context.handler_status.get_bot_status
+    status = secret_context.handler_status.get_bot_status()
     embed = discord.Embed(title='bot status', type='rich',
-                          description='*',
+                          description='** **',
                           color=utils.random_color())
     embed.set_thumbnail(url=status['icon'])
 
@@ -16,8 +16,37 @@ async def bot_status(secret_context):
         secret_context.secret_channel, embed=embed)
 
 
+async def discord_status(secret_context):
+    status = secret_context.handler_status.get_discord_status()
+    embed = discord.Embed(title='discord status', type='rich',
+                          description='** **',
+                          color=utils.random_color())
+    if status['connected']:
+        embed.set_thumbnail(url=status['icon'])
+        embed.add_field(name='id', value=status['id'], inline=True)
+        embed.add_field(name='name', value=status['name'], inline=True)
+        embed.add_field(name='created', value=status['created_at'], inline=True)
+        embed.add_field(name='members', value=str(status['members']), inline=True)
+
+    await secret_context.discord_client.send_message(
+        secret_context.secret_channel, embed=embed)
+
+
+async def git_status(secret_context):
+    status = secret_context.handler_status.get_git_status()
+    embed = discord.Embed(title='git status', type='rich',
+                          description='*',
+                          color=utils.random_color())
+    embed.set_thumbnail(url=status['icon'])
+
+    embed.add_field(name='status', value=status['status'], inline=True)
+    embed.add_field(name='updated', value=status['updated'], inline=True)
+    await secret_context.discord_client.send_message(
+        secret_context.secret_channel, embed=embed)
+
+
 async def mongo_status(secret_context):
-    status = secret_context.handler_status.get_mongo_status
+    status = secret_context.handler_status.get_mongo_status()
     embed = discord.Embed(title='mongo status', type='rich',
                           description='*',
                           color=utils.random_color())
@@ -37,20 +66,8 @@ async def mongo_status(secret_context):
         secret_context.secret_channel, embed=embed)
 
 
-async def git_status(secret_context):
-    status = secret_context.handler_status.get_git_status
-    embed = discord.Embed(title='git status', type='rich',
-                          description='*',
-                          color=utils.random_color())
-    embed.set_thumbnail(url=status['icon'])
-
-    embed.add_field(name='status', value=status['status'], inline=True)
-    embed.add_field(name='updated', value=status['updated'], inline=True)
-    await secret_context.discord_client.send_message(
-        secret_context.secret_channel, embed=embed)
-
-
 async def secret_status(secret_context):
     await bot_status(secret_context)
+    await discord_status(secret_context)
     await mongo_status(secret_context)
     await git_status(secret_context)

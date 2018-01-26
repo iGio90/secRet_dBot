@@ -1,7 +1,8 @@
 import asyncio
-from threading import Thread
+import aiohttp_cors
 
 from aiohttp.web import Application, json_response, run_app
+from threading import Thread
 
 
 class SecRetRest(object):
@@ -13,8 +14,24 @@ class SecRetRest(object):
         self.event_loop = asyncio.new_event_loop()
 
     async def init(self):
+        # setup app
         app = Application(loop=self.event_loop)
-        app.router.add_get('/', self.status)
+
+        # setup cors
+        cors = aiohttp_cors.setup(app)
+
+        # setup routers
+        resource = cors.add(app.router.add_resource("/"))
+
+        cors.add(
+            resource.add_route("GET", str), {
+                "http://secret.re": aiohttp_cors.ResourceOptions(
+                    allow_credentials=True,
+                    expose_headers=("X-SecretServer-Header",),
+                    allow_headers=("X-Requested-With", "Content-Type"),
+                    max_age=3600,
+                )
+            })
         return app
 
     def start(self):
