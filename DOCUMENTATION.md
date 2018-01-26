@@ -4,7 +4,7 @@
 * discord (http://discordpy.readthedocs.io/en/latest/api.html)
 * github (http://pygithub.readthedocs.io/en/latest/github.html)
 * mongo db (http://docs.mongoengine.org/apireference.html)
-* http server and rest api (WIP)
+* http server and restful api
 
 A lot of things are just not exposed by design (I.E wikipedia api, weather).
 This mean, that we have them inside but not exposed. References could be created as needed!
