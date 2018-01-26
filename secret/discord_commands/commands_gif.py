@@ -39,4 +39,3 @@ async def on_message(message, secret_context):
                         await secret_context.discord_client.send_message(message.channel, embed=embed)
             except Exception as e:
                 pass
-

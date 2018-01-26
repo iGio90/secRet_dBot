@@ -65,7 +65,7 @@ class SecRet(Thread):
             # use pipe and shell.. feel free to code a better way
             os.system("cd /var/www/html && git fetch origin master && git reset --h FETCH_HEAD")
         elif print_no_update:
-            embed = discord.Embed(title='core update', type='rich',
+            embed = discord.Embed(title='update', type='rich',
                                   description='nothing new to merge',
                                   color=utils.random_color())
             self.secret_context.bus.emit('secret_send', message=embed)

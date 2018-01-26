@@ -1,12 +1,12 @@
 import json
-import random
-
 import discord
+import random
 import urllib
-from secret import utils
 
+from secret import utils
 from secret.api import gplay, wikipedia, accuweather
-from secret.discord_commands import command_test, commands_git, commands_gif, command_help, command_status
+from secret.discord_commands import command_test, commands_git, commands_gif, \
+    command_help, command_hex, command_status
 from mongo_models import command_log
 
 
@@ -119,6 +119,9 @@ class MessageHandler(object):
         await command_help.help(message, self.secret_context.discord_client, [
             self.admin_commands_map, self.dev_commands_map, self.commands_map
         ], self.shortcuts_map)
+
+    async def hex(self, message):
+        await command_hex.on_message(message, self.secret_context)
 
     async def pr(self, message):
         await commands_git.pr(message, self.secret_context)
