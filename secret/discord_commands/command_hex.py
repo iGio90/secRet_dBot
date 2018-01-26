@@ -1,3 +1,5 @@
+import binascii
+
 from secret import utils
 
 
@@ -23,5 +25,6 @@ async def on_message(message, secret_context):
                     return
                 except Exception as e:
                     pass
-            embed = utils.simple_embed('hex', a.encode('hex'), utils.random_color())
+            r = binascii.hexlify(a.encode('utf8'))
+            embed = utils.simple_embed('hex', r.decode('utf8'), utils.random_color())
             await secret_context.discord_client.send_message(message.channel, embed=embed)
