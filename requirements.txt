@@ -8,6 +8,7 @@ colorthief
 discord.py
 dnspython
 event_bus
+html_similarity
 mongoengine
 requests
 wikipedia
