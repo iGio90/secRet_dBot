@@ -1,6 +1,7 @@
 import censys.certificates
 import censys.ipv4
 import censys
+import discord
 import dns
 import ipaddress
 
@@ -42,11 +43,12 @@ async def on_message(message, secret_context):
             embed = utils.simple_embed('cloudsolve', ('**%s** is not a valid domain' % domain), utils.random_color())
             await secret_context.discord_client.send_message(message.channel, embed=embed)
         elif not uses_cloudflare(domain):
-            embed = utils.simple_embed('cloudsolve', ('"%s" is not behind CloudFlare' % domain), utils.random_color())
+            embed = utils.simple_embed('cloudsolve', ('"%s" is not behind CloudFlare' % domain),
+                                       discord.Color.red())
             await secret_context.discord_client.send_message(message.channel, embed=embed)
         else:
             embed = utils.simple_embed('cloudsolve', ('**%s** appear to be behind CloudFlare' % domain),
-                                       utils.random_color())
+                                       discord.Color.green())
             await secret_context.discord_client.send_message(message.channel, embed=embed)
             embed = utils.simple_embed('cloudsolve', ('trying to exploit **%s** certificates' % domain),
                                        utils.random_color())

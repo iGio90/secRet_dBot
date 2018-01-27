@@ -4,7 +4,7 @@ import random
 import urllib
 
 from secret import utils
-from secret.api import gplay, wikipedia, accuweather
+from secret.api import accuweather, gplay, wikipedia, wordpress
 from secret.discord_commands import command_cloudsolve, commands_git, commands_gif, \
     command_help, command_hex, command_status, command_test
 from mongo_models import command_log
@@ -208,6 +208,9 @@ class MessageHandler(object):
 
     async def wikipedia(self, message):
         await wikipedia.on_message(message, self.secret_context)
+
+    async def wpscan(self, message):
+        await wordpress.on_message(message, self.secret_context)
 
     ##
     # end commands

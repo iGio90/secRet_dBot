@@ -1,3 +1,4 @@
+import hashlib
 import random
 import subprocess
 
@@ -5,6 +6,7 @@ import discord
 import math
 
 import dns
+import requests
 
 ICON = "https://steemit-production-imageproxy-upload.s3.amazonaws.com/DQmVyhQzqP7TF1SKuDWJkY3HuEGzv3ZpWGzLoJSAk42E81w"
 REPO = "https://github.com/secRetDBot/secRet_dBot"
@@ -44,6 +46,31 @@ def convert_size(size_bytes):
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return "%s %s" % (s, size_name[i])
+
+
+def download_file(url, filename):
+    try:
+        source = requests.get(url).text
+        with open(filename, 'wb') as ddl_file:
+            ddl_file.write(source.encode('utf8'))
+    except Exception as e:
+        raise e
+
+
+def download_raw_file(url, filename):
+    try:
+        source = requests.get(url, stream=True).raw
+        with open(filename, 'wb+') as ddl_file:
+            progress = 0
+            while True:
+                length = 16 * 1024
+                buf = source.read(length)
+                if not buf:
+                    break
+                ddl_file.write(buf)
+                progress += len(buf)
+    except Exception as e:
+        raise e
 
 
 def is_admin(member):
@@ -86,6 +113,10 @@ def is_valid_domain(domain):
         return True
     except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
         return False
+
+
+def md5_hash(filename):
+    return hashlib.md5(open(filename, 'rb').read()).hexdigest()
 
 
 def random_color():
