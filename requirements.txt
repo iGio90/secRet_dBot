@@ -9,6 +9,7 @@ discord.py
 dnspython
 event_bus
 html_similarity
+lxml
 mongoengine
 requests
 wikipedia
