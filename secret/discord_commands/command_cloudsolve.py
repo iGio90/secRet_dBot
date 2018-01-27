@@ -104,8 +104,8 @@ async def on_message(message, secret_context):
 def exploit_certificates(domain, secret_context):
     try:
         censys_certificates = censys.certificates.CensysCertificates(
-            api_id=secret_context.api_keys['csys_app_id'],
-            api_secret=secret_context.api_keys['csys_sec'])
+            api_id=secret_context.api_keys()['csys_app_id'],
+            api_secret=secret_context.api_keys()['csys_sec'])
         requested_fields = [
             'parsed.names',
             'parsed.fingerprint_sha256'
@@ -114,14 +114,15 @@ def exploit_certificates(domain, secret_context):
         certificates_search_results = censys_certificates.search(certificate_query, fields=requested_fields)
         return set([cert['parsed.fingerprint_sha256'] for cert in certificates_search_results])
     except Exception as e:
+        print(e)
         return set([])
 
 
 def find_ipv4_hosts(cert_fingerprints, secret_context):
     try:
         censys_hosts = censys.ipv4.CensysIPv4(
-            api_id=secret_context.api_keys['csys_app_id'],
-            api_secret=secret_context.api_keys['csys_sec'])
+            api_id=secret_context.api_keys()['csys_app_id'],
+            api_secret=secret_context.api_keys()['csys_sec'])
         hosts_query = ' OR '.join(cert_fingerprints)
         hosts_search_results = censys_hosts.search(hosts_query)
         return set([host_search_result['ip'] for host_search_result in hosts_search_results])
