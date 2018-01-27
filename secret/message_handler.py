@@ -5,8 +5,8 @@ import urllib
 
 from secret import utils
 from secret.api import gplay, wikipedia, accuweather
-from secret.discord_commands import command_test, commands_git, commands_gif, \
-    command_help, command_hex, command_status
+from secret.discord_commands import command_cloudsolve, commands_git, commands_gif, \
+    command_help, command_hex, command_status, command_test
 from mongo_models import command_log
 
 
@@ -48,6 +48,9 @@ class MessageHandler(object):
     ##
     # commands
     ##
+
+    async def cloudsolve(self, message):
+        await command_cloudsolve.on_message(message, self.secret_context)
 
     async def commands(self, message):
         """

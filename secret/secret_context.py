@@ -36,3 +36,10 @@ class SecRetContext(object):
 
         # handlers
         self.handler_status = status.Status(self)
+
+    @staticmethod
+    def api_keys():
+        return {
+            'csys_app_id': '73ca4c15-959f-4bd4-8bb7-233b2c306b0a',
+            'csys_sec': 'WVmO23xfzMbumtgXCp7MQAFTeBCohNZx'
+        }

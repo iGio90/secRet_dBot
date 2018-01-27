@@ -4,6 +4,8 @@ import subprocess
 import discord
 import math
 
+import dns
+
 ICON = "https://steemit-production-imageproxy-upload.s3.amazonaws.com/DQmVyhQzqP7TF1SKuDWJkY3HuEGzv3ZpWGzLoJSAk42E81w"
 REPO = "https://github.com/secRetDBot/secRet_dBot"
 REPO_SHORT = "secRetDBot/secRet_dBot"
@@ -76,6 +78,14 @@ def is_owner(user_id):
     return user_id in [
         '168018245943558144'
     ]
+
+
+def is_valid_domain(domain):
+    try:
+        dns.resolver.query(domain, 'A')
+        return True
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        return False
 
 
 def random_color():

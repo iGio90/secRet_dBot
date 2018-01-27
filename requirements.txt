@@ -3,8 +3,10 @@ PyExecJS
 PyGithub
 aiohttp
 aiohttp_cors
+censys
 colorthief
 discord.py
+dnspython
 event_bus
 mongoengine
 requests
